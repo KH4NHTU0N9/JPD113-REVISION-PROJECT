@@ -6,19 +6,16 @@ import type {
   QuizSubmissionResult,
   ScoreboardEntry,
 } from '../types/lesson';
+import { isSupabaseConfigured, supabaseEnv } from './env';
 import {
   appendLocalDemoScoreboard,
   loadLocalDemoScoreboard,
 } from './storage';
 
-const supabaseUrl = (import.meta.env.VITE_SUPABASE_URL as string | undefined)?.trim() ?? '';
-const supabaseAnonKey = (import.meta.env.VITE_SUPABASE_ANON_KEY as string | undefined)?.trim() ?? '';
-
-export const isSupabaseConfigured =
-  supabaseUrl.length > 0 && supabaseAnonKey.length > 0;
+export { isSupabaseConfigured };
 
 export const supabase = isSupabaseConfigured
-  ? createClient(supabaseUrl, supabaseAnonKey)
+  ? createClient(supabaseEnv.url, supabaseEnv.anonKey)
   : null;
 
 export function normalizeStudentCode(rawCode: string): string {

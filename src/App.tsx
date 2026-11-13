@@ -17,7 +17,7 @@ import {
   saveReviewProgress,
   type ReviewProgressState,
 } from './lib/storage';
-import { isSupabaseConfigured } from './lib/supabaseClient';
+import { isSupabaseConfigured } from './lib/env';
 import type { DisplayMode } from './types/lesson';
 
 const SEVEN_MINUTES_SECONDS = 7 * 60;
