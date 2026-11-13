@@ -75,7 +75,7 @@ export function SentenceTilesGame({
   };
 
   return (
-    <section className="rounded-2xl border border-stone-200 bg-white p-4 shadow-xs sm:p-6">
+    <section className="rounded-xl border border-stone-200 bg-white p-4 shadow-2xs sm:p-5">
       <div className="flex flex-wrap items-center justify-between gap-2">
         <div className="flex flex-wrap items-center gap-1.5">
           {SENTENCE_TILE_PUZZLES.map((p, idx) => {
@@ -130,7 +130,7 @@ export function SentenceTilesGame({
         >
           {selectedIds.length === 0 ? (
             <span className="text-xs font-medium text-stone-400">
-              Chạm lần lượt các mảnh từ bên dưới để ghép câu (né mảnh bẫy thừa)...
+              Chọn mảnh bên dưới...
             </span>
           ) : (
             selectedIds.map((id) => {
