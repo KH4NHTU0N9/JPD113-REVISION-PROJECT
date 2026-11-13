@@ -1,4 +1,5 @@
 import { Suspense, lazy, useEffect, useState } from 'react';
+import { ChunkErrorBoundary } from './components/ChunkErrorBoundary';
 import { HeaderBar, type ActiveRoute } from './components/HeaderBar';
 import { Phase1Container } from './components/Phase1Container';
 
@@ -38,14 +39,25 @@ export default function App() {
   const [activeRoute, setActiveRoute] = useState<ActiveRoute>(() =>
     routeFromPathname(window.location.pathname)
   );
-  const [progress, setProgress] = useState<ReviewProgressState>(() =>
-    loadReviewProgress()
-  );
+  const [progress, setProgress] = useState<ReviewProgressState>(() => {
+    const loaded = loadReviewProgress();
+    if (loaded.timerStartedAtMs !== null) {
+      const elapsed = Math.floor((Date.now() - loaded.timerStartedAtMs) / 1000);
+      if (SEVEN_MINUTES_SECONDS - elapsed <= 0) {
+        return {
+          ...loaded,
+          timerStartedAtMs: null,
+          pausedRemainingSeconds: 0,
+        };
+      }
+    }
+    return loaded;
+  });
 
   const [remainingSeconds, setRemainingSeconds] = useState<number>(() => {
     if (progress.timerStartedAtMs !== null) {
       const elapsed = Math.floor((Date.now() - progress.timerStartedAtMs) / 1000);
-      return Math.max(0, SEVEN_MINUTES_SECONDS - elapsed);
+      return Math.max(0, Math.min(SEVEN_MINUTES_SECONDS, SEVEN_MINUTES_SECONDS - elapsed));
     }
     if (progress.pausedRemainingSeconds !== null) {
       return Math.max(0, Math.min(SEVEN_MINUTES_SECONDS, progress.pausedRemainingSeconds));
@@ -77,7 +89,10 @@ export default function App() {
 
     const syncCountdown = () => {
       const elapsed = Math.floor((Date.now() - startedAtMs) / 1000);
-      const nextRemaining = Math.max(0, SEVEN_MINUTES_SECONDS - elapsed);
+      const nextRemaining = Math.max(
+        0,
+        Math.min(SEVEN_MINUTES_SECONDS, SEVEN_MINUTES_SECONDS - elapsed)
+      );
       setRemainingSeconds(nextRemaining);
       if (nextRemaining === 0) {
         setTimerRunning(false);
@@ -98,11 +113,13 @@ export default function App() {
     };
     document.addEventListener('visibilitychange', handleVisibility);
     window.addEventListener('focus', syncCountdown);
+    window.addEventListener('pageshow', syncCountdown);
 
     return () => {
       window.clearInterval(id);
       document.removeEventListener('visibilitychange', handleVisibility);
       window.removeEventListener('focus', syncCountdown);
+      window.removeEventListener('pageshow', syncCountdown);
     };
   }, [timerRunning, progress.timerStartedAtMs]);
 
@@ -227,32 +244,36 @@ export default function App() {
         )}
 
         {activeRoute === 'phase2' && (
-          <Suspense
-            fallback={
-              <div className="rounded-2xl border border-stone-200 bg-white p-8 text-center text-xs font-semibold text-stone-500">
-                Đang tải Phase 2 Quiz...
-              </div>
-            }
-          >
-            <Phase2QuizRunner
-              onGoToScoreboard={() => handleRouteChange('scoreboard')}
-              onScoreboardMutated={() =>
-                setScoreboardRefreshSignal((prev) => prev + 1)
+          <ChunkErrorBoundary fallbackTitle="Không tải được trang Quiz 20 câu">
+            <Suspense
+              fallback={
+                <div className="rounded-2xl border border-stone-200 bg-white p-8 text-center text-xs font-semibold text-stone-500">
+                  Đang tải Phase 2 Quiz...
+                </div>
               }
-            />
-          </Suspense>
+            >
+              <Phase2QuizRunner
+                onGoToScoreboard={() => handleRouteChange('scoreboard')}
+                onScoreboardMutated={() =>
+                  setScoreboardRefreshSignal((prev) => prev + 1)
+                }
+              />
+            </Suspense>
+          </ChunkErrorBoundary>
         )}
 
         {activeRoute === 'scoreboard' && (
-          <Suspense
-            fallback={
-              <div className="rounded-2xl border border-stone-200 bg-white p-8 text-center text-xs font-semibold text-stone-500">
-                Đang tải Scoreboard...
-              </div>
-            }
-          >
-            <ScoreboardView refreshSignal={scoreboardRefreshSignal} />
-          </Suspense>
+          <ChunkErrorBoundary fallbackTitle="Không tải được trang Scoreboard">
+            <Suspense
+              fallback={
+                <div className="rounded-2xl border border-stone-200 bg-white p-8 text-center text-xs font-semibold text-stone-500">
+                  Đang tải Scoreboard...
+                </div>
+              }
+            >
+              <ScoreboardView refreshSignal={scoreboardRefreshSignal} />
+            </Suspense>
+          </ChunkErrorBoundary>
         )}
       </main>
     </div>
