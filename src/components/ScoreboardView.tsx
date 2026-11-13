@@ -129,34 +129,29 @@ export function ScoreboardView({ refreshSignal }: ScoreboardViewProps) {
   };
 
   return (
-    <div className="space-y-5">
-      <div className="flex flex-wrap items-center justify-between gap-3 rounded-2xl border border-stone-200 bg-white p-4 shadow-xs">
-        <div>
-          <div className="flex flex-wrap items-center gap-2">
-            <Trophy className="h-5 w-5 text-red-700" />
-            <h2 className="text-lg font-extrabold text-stone-900">
-              Scoreboard Lớp Học · Xét Thưởng Top 1
-            </h2>
-            <span
-              className={`flex items-center gap-1 rounded-full px-2.5 py-0.5 text-[11px] font-bold ${
-                !isSupabaseConfigured
-                  ? 'bg-amber-100 text-amber-800'
-                  : realtimeStatus === 'SUBSCRIBED'
-                    ? 'bg-emerald-100 text-emerald-800'
-                    : 'bg-stone-100 text-stone-600'
-              }`}
-            >
-              <Radio className="h-3 w-3" />
-              {!isSupabaseConfigured
-                ? 'Demo Local'
+    <div className="space-y-4">
+      <div className="flex flex-wrap items-center justify-between gap-3 rounded-xl border border-stone-200 bg-white p-3.5 shadow-2xs sm:p-4">
+        <div className="flex flex-wrap items-center gap-2">
+          <Trophy className="h-5 w-5 text-red-700" />
+          <h2 className="text-base font-extrabold text-stone-900 sm:text-lg">
+            Scoreboard Lớp Học
+          </h2>
+          <span
+            className={`flex items-center gap-1 rounded-full px-2.5 py-0.5 text-[11px] font-bold ${
+              !isSupabaseConfigured
+                ? 'bg-amber-100 text-amber-800'
                 : realtimeStatus === 'SUBSCRIBED'
-                  ? 'Live Realtime'
-                  : realtimeStatus}
-            </span>
-          </div>
-          <p className="mt-0.5 text-xs text-stone-500">
-            Ưu tiên: Điểm cao nhất (DESC) → Thời gian làm nhanh nhất (ASC). Mặc định lọc Lượt 1.
-          </p>
+                  ? 'bg-emerald-100 text-emerald-800'
+                  : 'bg-stone-100 text-stone-600'
+            }`}
+          >
+            <Radio className="h-3 w-3" />
+            {!isSupabaseConfigured
+              ? 'Demo Local'
+              : realtimeStatus === 'SUBSCRIBED'
+                ? 'Live Realtime'
+                : realtimeStatus}
+          </span>
         </div>
 
         <div className="flex flex-wrap items-center gap-2">
