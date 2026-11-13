@@ -59,6 +59,32 @@ describe('Japanese Formatters & PDF Trap Fixes', () => {
     expect(jps).not.toContain('はたちさいです。');
     expect(jps).toContain('わたしの たんじょうびは じゅうにがつ ようかです。');
     expect(jps).toContain('しゅみは りょこうと えいがです。');
+    expect(lines[1].romaji).toBe('Watashi wa An desu.');
+  });
+
+  it('safely clamps NaN and out-of-bounds ages consistently across Kana and Vietnamese', () => {
+    expect(formatAgeJp(Number.NaN).kana).toBe('はたち');
+    expect(formatAgeJp(0).kana).toBe('いっさい');
+    expect(formatAgeJp(150).kana).toBe('きゅうじゅうきゅうさい');
+
+    const lines = buildJikoshoukaiLines({
+      name: 'Minh',
+      countryNationalityKana: 'ベトナムじん',
+      countryNationalityRomaji: 'betonamujin',
+      countryVi: 'Việt Nam',
+      schoolKana: 'FPTだいがく',
+      schoolRomaji: 'FPT daigaku',
+      schoolVi: 'Đại học FPT',
+      age: 150,
+      birthMonth: 4,
+      birthDay: 4,
+      hobby1Kana: 'りょこう',
+      hobby1Romaji: 'ryokou',
+      hobby1Vi: 'Du lịch',
+    });
+
+    const ageLine = lines.find((l) => l.vi.includes('tuổi'));
+    expect(ageLine?.vi).toBe('Tôi 99 tuổi.');
   });
 });
 
@@ -115,14 +141,19 @@ describe('Scoreboard Tie-Breaker & CSV Export', () => {
     expect(formatDurationMs(0)).toBe('00:00.00');
   });
 
-  it('neutralizes CSV formula injection and prefixes UTF-8 BOM', () => {
+  it('neutralizes CSV formula injection (ASCII & full-width) and prefixes UTF-8 BOM with CRLF', () => {
     expect(escapeCsvCell('=1+1')).toBe(`"'=1+1"`);
     expect(escapeCsvCell('+CMD')).toBe(`"'+CMD"`);
     expect(escapeCsvCell('-10')).toBe(`"'-10"`);
     expect(escapeCsvCell('@SUM')).toBe(`"'@SUM"`);
+    expect(escapeCsvCell('＝1+1')).toBe(`"'＝1+1"`);
+    expect(escapeCsvCell('＋CMD')).toBe(`"'＋CMD"`);
+    expect(escapeCsvCell('－10')).toBe(`"'－10"`);
+    expect(escapeCsvCell('＠SUM')).toBe(`"'＠SUM"`);
 
     const csv = buildScoreboardCsv([sampleEntries[1]]);
     expect(csv.startsWith('\uFEFF')).toBe(true);
+    expect(csv).toContain('\r\n');
     expect(csv).toContain('"Lê B"');
   });
 });
