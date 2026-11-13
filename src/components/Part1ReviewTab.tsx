@@ -120,42 +120,32 @@ export function Part1ReviewTab({
   const visibleCountries = showAllCountries ? COUNTRIES : COUNTRIES.slice(0, 6);
 
   return (
-    <div className="space-y-5">
-      <div className="flex flex-wrap items-center justify-between gap-2 rounded-2xl border border-amber-200 bg-amber-50/70 p-3.5">
-        <div>
-          <h2 className="text-sm font-extrabold text-stone-900">
-            Part 1 · Từ vựng, Xưng hô & 5 Mẫu câu cơ bản
-          </h2>
-          <p className="text-xs text-stone-600">
-            Chạm vào dòng chữ khi bật “Che cách đọc” để tự nhẩm trước khi qua Bước 2 chơi mini-game.
-          </p>
-        </div>
-        <div className="flex flex-wrap items-center gap-2">
-          <button
-            type="button"
-            onClick={() => setTrapOnly((prev) => !prev)}
-            className={`flex items-center gap-1.5 rounded-lg border px-2.5 py-1.5 text-xs font-bold transition ${
-              trapOnly
-                ? 'border-amber-400 bg-amber-200 text-amber-950'
-                : 'border-stone-200 bg-white text-stone-700 hover:bg-stone-50'
-            }`}
-          >
-            <Filter className="h-3.5 w-3.5" />
-            {trapOnly ? 'Đang lọc: Chỉ Bẫy' : 'Lọc: Chỉ xem Bẫy'}
-          </button>
-          <button
-            type="button"
-            onClick={() => setHideReading((prev) => !prev)}
-            className={`flex items-center gap-1.5 rounded-lg border px-2.5 py-1.5 text-xs font-bold transition ${
-              hideReading
-                ? 'border-stone-900 bg-stone-900 text-white'
-                : 'border-stone-200 bg-white text-stone-700 hover:bg-stone-50'
-            }`}
-          >
-            {hideReading ? <Eye className="h-3.5 w-3.5" /> : <EyeOff className="h-3.5 w-3.5" />}
-            {hideReading ? 'Hiện cách đọc' : 'Che cách đọc'}
-          </button>
-        </div>
+    <div className="space-y-4">
+      <div className="flex flex-wrap items-center justify-end gap-2">
+        <button
+          type="button"
+          onClick={() => setTrapOnly((prev) => !prev)}
+          className={`flex items-center gap-1.5 rounded-lg border px-2.5 py-1.5 text-xs font-bold transition ${
+            trapOnly
+              ? 'border-amber-300 bg-amber-100 text-amber-950'
+              : 'border-stone-200 bg-white text-stone-700 hover:bg-stone-50'
+          }`}
+        >
+          <Filter className="h-3.5 w-3.5" />
+          {trapOnly ? 'Đang lọc: Bẫy' : 'Chỉ xem Bẫy'}
+        </button>
+        <button
+          type="button"
+          onClick={() => setHideReading((prev) => !prev)}
+          className={`flex items-center gap-1.5 rounded-lg border px-2.5 py-1.5 text-xs font-bold transition ${
+            hideReading
+              ? 'border-red-300 bg-red-50 text-red-800'
+              : 'border-stone-200 bg-white text-stone-700 hover:bg-stone-50'
+          }`}
+        >
+          {hideReading ? <Eye className="h-3.5 w-3.5" /> : <EyeOff className="h-3.5 w-3.5" />}
+          {hideReading ? 'Hiện cách đọc' : 'Che cách đọc'}
+        </button>
       </div>
 
       <div className="grid gap-4 md:grid-cols-2">
@@ -299,20 +289,17 @@ export function Part1ReviewTab({
         </div>
       </section>
 
-      <div className="flex flex-wrap items-center justify-between gap-3 rounded-2xl border border-stone-200 bg-white p-4 shadow-xs">
-        <p className="text-xs text-stone-600">
-          Đã xem xong Từ vựng, 18 Quốc gia & 5 Mẫu câu chưa? Chuyển qua Part 2 Tuổi & Ngày nhé.
-        </p>
+      <div className="flex justify-end">
         <button
           type="button"
           onClick={onComplete}
           className={`flex items-center gap-1.5 rounded-xl px-4 py-2 text-xs font-extrabold transition ${
             isCompleted
-              ? 'bg-emerald-100 text-emerald-800'
+              ? 'bg-emerald-100 text-emerald-800 hover:bg-emerald-200'
               : 'bg-red-700 text-white hover:bg-red-800'
           }`}
         >
-          <span>{isCompleted ? 'Đã xem Part 1 · Sang Part 2' : 'Xong lý thuyết Part 1 → Part 2'}</span>
+          <span>{isCompleted ? 'Sang Part 2' : 'Tiếp tục: Part 2'}</span>
           <ArrowRight className="h-4 w-4" />
         </button>
       </div>
