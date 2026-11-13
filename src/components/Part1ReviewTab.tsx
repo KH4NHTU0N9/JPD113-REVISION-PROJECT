@@ -1,5 +1,5 @@
 import { useState } from 'react';
-import { AlertTriangle, ArrowRight, Eye, EyeOff, Filter } from 'lucide-react';
+import { ArrowRight, Eye, EyeOff, Filter } from 'lucide-react';
 import {
   CONFUSING_PAIRS,
   COUNTRIES,
@@ -180,42 +180,42 @@ export function Part1ReviewTab({
       </div>
 
       {!trapOnly && (
-        <section className="rounded-2xl border border-stone-200 bg-white p-4 shadow-xs">
-          <div className="mb-3 flex items-center justify-between gap-2">
+        <section className="rounded-xl border border-stone-200 bg-white p-3.5 shadow-2xs sm:p-4">
+          <div className="mb-2.5 flex items-center justify-between gap-2">
             <h3 className="text-sm font-extrabold text-stone-900">
-              18 Quốc gia & Quốc tịch ([Tên nước] + 人 じん)
+              Quốc gia & Quốc tịch ([Tên nước] + 人 じん)
             </h3>
             <button
               type="button"
               onClick={() => setShowAllCountries((prev) => !prev)}
               className="rounded-lg bg-stone-100 px-2.5 py-1 text-xs font-bold text-stone-700 hover:bg-stone-200"
             >
-              {showAllCountries ? 'Thu gọn (6 nước)' : `Xem đủ cả ${COUNTRIES.length} nước`}
+              {showAllCountries ? 'Thu gọn (6)' : `Xem cả ${COUNTRIES.length} nước`}
             </button>
           </div>
           <div className="overflow-x-auto">
             <table className="w-full border-collapse text-left text-xs">
               <thead>
                 <tr className="border-b border-stone-200 text-stone-500">
-                  <th className="py-2 pr-3 font-semibold">Quốc gia</th>
-                  <th className="py-2 pr-3 font-semibold">Tiếng Nhật</th>
-                  <th className="py-2 font-semibold">Quốc tịch (+ じん)</th>
+                  <th className="py-1.5 pr-3 font-semibold">Quốc gia</th>
+                  <th className="py-1.5 pr-3 font-semibold">Tiếng Nhật</th>
+                  <th className="py-1.5 font-semibold">Quốc tịch (+ じん)</th>
                 </tr>
               </thead>
               <tbody className="divide-y divide-stone-100">
                 {visibleCountries.map((c) => (
                   <tr key={c.id}>
-                    <td className="py-2 pr-3 font-semibold text-stone-800">{c.viName}</td>
-                    <td className="font-jp py-2 pr-3">
+                    <td className="py-1.5 pr-3 font-semibold text-stone-800">{c.viName}</td>
+                    <td className="font-jp py-1.5 pr-3">
                       <span className="font-bold text-stone-900">{c.countryJp}</span>{' '}
                       {!hideReading && displayMode !== 'challenge' && (
-                        <span className="text-stone-500">({c.countryKana})</span>
+                        <span className="text-stone-400">({c.countryKana})</span>
                       )}
                     </td>
-                    <td className="font-jp py-2">
+                    <td className="font-jp py-1.5">
                       <span className="font-bold text-red-700">{c.nationalityJp}</span>{' '}
                       {!hideReading && displayMode !== 'challenge' && (
-                        <span className="text-stone-500">({c.nationalityKana})</span>
+                        <span className="text-stone-400">({c.nationalityKana})</span>
                       )}
                     </td>
                   </tr>
@@ -226,33 +226,30 @@ export function Part1ReviewTab({
         </section>
       )}
 
-      <section className="rounded-2xl border border-red-200 bg-red-50/50 p-4">
-        <div className="mb-3 flex items-center gap-2">
-          <AlertTriangle className="h-4 w-4 text-red-700" />
-          <h3 className="text-sm font-extrabold text-red-900">
-            2 Cặp từ dễ nhầm bắt buộc nhớ trước khi vào Quiz
-          </h3>
-        </div>
+      <section className="rounded-xl border border-stone-200 bg-white p-3.5 shadow-2xs sm:p-4">
+        <h3 className="mb-2.5 text-sm font-extrabold text-stone-900">
+          2 Cặp từ dễ nhầm
+        </h3>
         <div className="grid gap-3 md:grid-cols-2">
           {CONFUSING_PAIRS.map((pair) => (
             <div
               key={pair.id}
-              className="rounded-xl border border-red-100 bg-white p-3.5 shadow-xs"
+              className="rounded-xl border border-stone-200 bg-stone-50/60 p-3"
             >
               <h4 className="font-jp text-xs font-extrabold text-red-800">{pair.title}</h4>
               <div className="mt-2 space-y-2 text-xs">
-                <div className="rounded-lg bg-stone-50 p-2">
+                <div className="rounded-lg bg-white p-2">
                   <p className="font-jp font-bold text-stone-900">{pair.leftLabel}</p>
                   <p className="text-stone-600">{pair.leftUsage}</p>
-                  <p className="font-jp mt-1 text-red-700">{pair.leftExample}</p>
+                  <p className="font-jp mt-0.5 text-red-700">{pair.leftExample}</p>
                 </div>
-                <div className="rounded-lg bg-stone-50 p-2">
+                <div className="rounded-lg bg-white p-2">
                   <p className="font-jp font-bold text-stone-900">{pair.rightLabel}</p>
                   <p className="text-stone-600">{pair.rightUsage}</p>
-                  <p className="font-jp mt-1 text-red-700">{pair.rightExample}</p>
+                  <p className="font-jp mt-0.5 text-red-700">{pair.rightExample}</p>
                 </div>
                 <p className="text-[11px] font-medium text-amber-800">
-                  Lưu ý: {pair.warning}
+                  {pair.warning}
                 </p>
               </div>
             </div>
@@ -260,15 +257,15 @@ export function Part1ReviewTab({
         </div>
       </section>
 
-      <section className="rounded-2xl border border-stone-200 bg-white p-4 shadow-xs">
-        <h3 className="mb-3 text-sm font-extrabold text-stone-900">
-          5 Mẫu câu ngữ pháp cơ bản
+      <section className="rounded-xl border border-stone-200 bg-white p-3.5 shadow-2xs sm:p-4">
+        <h3 className="mb-2.5 text-sm font-extrabold text-stone-900">
+          5 Mẫu câu ngữ pháp
         </h3>
-        <div className="grid gap-3 sm:grid-cols-2">
+        <div className="grid gap-2.5 sm:grid-cols-2">
           {GRAMMAR_PATTERNS.map((g) => (
             <div
               key={g.id}
-              className="rounded-xl border border-stone-100 bg-stone-50 p-3"
+              className="rounded-xl border border-stone-100 bg-stone-50/70 p-3"
             >
               <p className="text-xs font-extrabold text-red-800">{g.title}</p>
               <p className="font-jp mt-1 text-sm font-bold text-stone-900">{g.structure}</p>
@@ -276,10 +273,10 @@ export function Part1ReviewTab({
                 {g.exampleJp}
               </p>
               {displayMode === 'full' && (
-                <p className="text-[11px] text-stone-500">{g.exampleRomaji}</p>
+                <p className="text-[11px] text-stone-400">{g.exampleRomaji}</p>
               )}
               <p className="text-xs text-stone-600">{g.exampleVi}</p>
-              <ul className="mt-2 list-disc space-y-0.5 pl-4 text-[11px] text-stone-600">
+              <ul className="mt-1.5 list-disc space-y-0.5 pl-4 text-[11px] text-stone-500">
                 {g.notes.map((n) => (
                   <li key={n}>{n}</li>
                 ))}
