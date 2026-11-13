@@ -2,6 +2,7 @@ import { DAY_READINGS, MONTH_READINGS } from '../data/part2Data';
 
 export interface JikoshoukaiInput {
   name: string;
+  nameRomaji?: string;
   countryNationalityKana: string;
   countryNationalityRomaji: string;
   countryVi: string;
@@ -14,9 +15,9 @@ export interface JikoshoukaiInput {
   hobby1Kana: string;
   hobby1Romaji: string;
   hobby1Vi: string;
-  hobby2Kana: string;
-  hobby2Romaji: string;
-  hobby2Vi: string;
+  hobby2Kana?: string;
+  hobby2Romaji?: string;
+  hobby2Vi?: string;
 }
 
 export interface JikoshoukaiLine {
@@ -59,7 +60,8 @@ export function formatAgeJp(age: number): {
   romaji: string;
   isSpecial: boolean;
 } {
-  const safeAge = Math.max(1, Math.min(99, Math.floor(age)));
+  const finiteAge = Number.isFinite(age) ? age : 20;
+  const safeAge = Math.max(1, Math.min(99, Math.floor(finiteAge)));
   if (safeAge === 20) {
     return {
       kanji: '二十歳',
@@ -133,11 +135,24 @@ export function formatBirthdayJp(month: number, day: number): {
 
 export function buildJikoshoukaiLines(input: JikoshoukaiInput): JikoshoukaiLine[] {
   const safeName = input.name.trim() || 'アン';
-  const ageFormatted = formatAgeJp(input.age);
+  const safeNameRomaji =
+    input.nameRomaji?.trim() || (safeName === 'アン' ? 'An' : safeName);
+  const safeSchoolKana = input.schoolKana.trim() || 'FPTだいがく';
+  const safeSchoolVi = input.schoolVi.trim() || safeSchoolKana;
+  const safeSchoolRomaji =
+    input.schoolRomaji.trim() ||
+    (safeSchoolKana === 'FPTだいがく' ? 'FPT daigaku' : safeSchoolKana);
+
+  const finiteAge = Number.isFinite(input.age) ? input.age : 20;
+  const clampedAge = Math.max(1, Math.min(99, Math.floor(finiteAge)));
+  const ageFormatted = formatAgeJp(clampedAge);
   const birthday = formatBirthdayJp(input.birthMonth, input.birthDay);
 
   const hobbyLine =
-    input.hobby2Kana && input.hobby2Kana !== input.hobby1Kana
+    input.hobby2Kana &&
+    input.hobby2Romaji &&
+    input.hobby2Vi &&
+    input.hobby2Kana !== input.hobby1Kana
       ? {
           jp: `しゅみは ${input.hobby1Kana}と ${input.hobby2Kana}です。`,
           romaji: `Shumi wa ${input.hobby1Romaji} to ${input.hobby2Romaji} desu.`,
@@ -157,7 +172,7 @@ export function buildJikoshoukaiLines(input: JikoshoukaiInput): JikoshoukaiLine[
     },
     {
       jp: `わたしは ${safeName}です。`,
-      romaji: `Watashi wa ${safeName} desu.`,
+      romaji: `Watashi wa ${safeNameRomaji} desu.`,
       vi: `Tôi là ${safeName}.`,
     },
     {
@@ -166,15 +181,15 @@ export function buildJikoshoukaiLines(input: JikoshoukaiInput): JikoshoukaiLine[
       vi: `Tôi là người ${input.countryVi}.`,
     },
     {
-      jp: `${input.schoolKana}の がくせいです。`,
-      romaji: `${input.schoolRomaji} no gakusei desu.`,
-      vi: `Tôi là sinh viên ${input.schoolVi}.`,
+      jp: `${safeSchoolKana}の がくせいです。`,
+      romaji: `${safeSchoolRomaji} no gakusei desu.`,
+      vi: `Tôi là sinh viên ${safeSchoolVi}.`,
     },
     {
       jp: `${ageFormatted.kana}です。`,
       romaji: `${ageFormatted.romaji} desu.`,
-      vi: `Tôi ${input.age} tuổi.`,
-      badge: input.age === 20 ? 'Đã tự bỏ さい → はたち' : undefined,
+      vi: `Tôi ${clampedAge} tuổi.`,
+      badge: clampedAge === 20 ? 'Đã tự bỏ さい → はたち' : undefined,
     },
     {
       jp: `わたしの たんじょうびは ${birthday.kana}です。`,

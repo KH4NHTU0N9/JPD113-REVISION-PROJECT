@@ -35,7 +35,8 @@ export function Part3ReviewTab({
   const [schoolKana, setSchoolKana] = useState('FPTだいがく');
   const [schoolVi, setSchoolVi] = useState('Đại học FPT');
   const [ageInput, setAgeInput] = useState('20');
-  const age = Math.min(99, Math.max(1, Number.parseInt(ageInput, 10) || 20));
+  const parsedAge = Number.parseInt(ageInput, 10);
+  const age = Number.isNaN(parsedAge) ? 20 : Math.min(99, Math.max(1, parsedAge));
   const [birthMonth, setBirthMonth] = useState(12);
   const [birthDay, setBirthDay] = useState(8);
   const [hobby1Id, setHobby1Id] = useState('h3');
@@ -46,7 +47,7 @@ export function Part3ReviewTab({
     (s) => s.isBug && fixedBugIds[s.id]
   ).length;
 
-  const handleSegmentClick = (id: string, isBug: boolean, explanation?: string) => {
+  const handleSegmentClick = (id: string, isBug: boolean) => {
     if (!isBug) {
       setWrongClicks('Đoạn này đúng rồi — hãy soi kỹ quốc tịch, nghề nghiệp, tuổi và ngày sinh!');
       onRecordWeakNote('Part 3 – Soi Bug: Nhầm lẫn đoạn đúng thành lỗi sai.');
@@ -54,9 +55,6 @@ export function Part3ReviewTab({
     }
     setWrongClicks(null);
     setFixedBugIds((prev) => ({ ...prev, [id]: true }));
-    if (explanation) {
-      // Keep positive reinforcement subtle; no error note needed unless wrong
-    }
   };
 
   const selectedCountry =
@@ -74,7 +72,7 @@ export function Part3ReviewTab({
         countryNationalityRomaji: selectedCountry.nationalityRomaji,
         countryVi: selectedCountry.viName,
         schoolKana,
-        schoolRomaji: schoolKana,
+        schoolRomaji: schoolKana === 'FPTだいがく' ? 'FPT daigaku' : schoolKana,
         schoolVi,
         age,
         birthMonth,
@@ -207,9 +205,7 @@ export function Part3ReviewTab({
               <button
                 key={seg.id}
                 type="button"
-                onClick={() =>
-                  handleSegmentClick(seg.id, seg.isBug, seg.explanation)
-                }
+                onClick={() => handleSegmentClick(seg.id, seg.isBug)}
                 className={`rounded-lg px-2.5 py-1 text-left font-bold transition ${
                   isFixed
                     ? 'border border-emerald-400 bg-emerald-100 text-emerald-900'
@@ -264,7 +260,7 @@ export function Part3ReviewTab({
               type="text"
               value={name}
               onChange={(e) => setName(e.target.value)}
-              className="mt-1 w-full rounded-lg border border-stone-300 px-2.5 py-1.5 text-xs font-semibold"
+              className="mt-1 w-full rounded-lg border border-stone-300 px-2.5 py-1.5 text-base font-semibold sm:text-xs"
               placeholder="アン"
             />
           </label>
@@ -273,7 +269,7 @@ export function Part3ReviewTab({
             <select
               value={countryId}
               onChange={(e) => setCountryId(e.target.value)}
-              className="mt-1 w-full rounded-lg border border-stone-300 px-2.5 py-1.5 text-xs font-semibold"
+              className="mt-1 w-full rounded-lg border border-stone-300 px-2.5 py-1.5 text-base font-semibold sm:text-xs"
             >
               {COUNTRIES.map((c) => (
                 <option key={c.id} value={c.id}>
@@ -283,15 +279,21 @@ export function Part3ReviewTab({
             </select>
           </label>
           <label className="block text-xs">
-            <span className="font-bold text-stone-700">Trường học</span>
+            <span className="font-bold text-stone-700">Trường học (Tiếng Nhật)</span>
             <input
               type="text"
               value={schoolKana}
-              onChange={(e) => {
-                setSchoolKana(e.target.value);
-                setSchoolVi(e.target.value);
-              }}
-              className="mt-1 w-full rounded-lg border border-stone-300 px-2.5 py-1.5 text-xs font-semibold"
+              onChange={(e) => setSchoolKana(e.target.value)}
+              className="mt-1 w-full rounded-lg border border-stone-300 px-2.5 py-1.5 text-base font-semibold sm:text-xs"
+            />
+          </label>
+          <label className="block text-xs">
+            <span className="font-bold text-stone-700">Tên trường (Nghĩa tiếng Việt)</span>
+            <input
+              type="text"
+              value={schoolVi}
+              onChange={(e) => setSchoolVi(e.target.value)}
+              className="mt-1 w-full rounded-lg border border-stone-300 px-2.5 py-1.5 text-base font-semibold sm:text-xs"
             />
           </label>
           <label className="block text-xs">
@@ -303,7 +305,7 @@ export function Part3ReviewTab({
               value={ageInput}
               onChange={(e) => setAgeInput(e.target.value)}
               onBlur={() => setAgeInput(String(age))}
-              className="mt-1 w-full rounded-lg border border-stone-300 px-2.5 py-1.5 text-xs font-semibold"
+              className="mt-1 w-full rounded-lg border border-stone-300 px-2.5 py-1.5 text-base font-semibold sm:text-xs"
             />
           </label>
           <label className="block text-xs">
@@ -311,7 +313,7 @@ export function Part3ReviewTab({
             <select
               value={birthMonth}
               onChange={(e) => setBirthMonth(Number(e.target.value))}
-              className="mt-1 w-full rounded-lg border border-stone-300 px-2.5 py-1.5 text-xs font-semibold"
+              className="mt-1 w-full rounded-lg border border-stone-300 px-2.5 py-1.5 text-base font-semibold sm:text-xs"
             >
               {Array.from({ length: 12 }, (_, i) => i + 1).map((m) => (
                 <option key={m} value={m}>
@@ -325,7 +327,7 @@ export function Part3ReviewTab({
             <select
               value={birthDay}
               onChange={(e) => setBirthDay(Number(e.target.value))}
-              className="mt-1 w-full rounded-lg border border-stone-300 px-2.5 py-1.5 text-xs font-semibold"
+              className="mt-1 w-full rounded-lg border border-stone-300 px-2.5 py-1.5 text-base font-semibold sm:text-xs"
             >
               {Array.from({ length: 31 }, (_, i) => i + 1).map((d) => (
                 <option key={d} value={d}>
@@ -339,7 +341,7 @@ export function Part3ReviewTab({
             <select
               value={hobby1Id}
               onChange={(e) => setHobby1Id(e.target.value)}
-              className="mt-1 w-full rounded-lg border border-stone-300 px-2.5 py-1.5 text-xs font-semibold"
+              className="mt-1 w-full rounded-lg border border-stone-300 px-2.5 py-1.5 text-base font-semibold sm:text-xs"
             >
               {HOBBY_CHOICES.map((h) => (
                 <option key={h.id} value={h.id}>
@@ -353,7 +355,7 @@ export function Part3ReviewTab({
             <select
               value={hobby2Id}
               onChange={(e) => setHobby2Id(e.target.value)}
-              className="mt-1 w-full rounded-lg border border-stone-300 px-2.5 py-1.5 text-xs font-semibold"
+              className="mt-1 w-full rounded-lg border border-stone-300 px-2.5 py-1.5 text-base font-semibold sm:text-xs"
             >
               {HOBBY_CHOICES.map((h) => (
                 <option key={h.id} value={h.id}>
