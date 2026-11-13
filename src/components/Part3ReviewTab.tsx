@@ -1,5 +1,5 @@
 import { useMemo, useState } from 'react';
-import { ArrowRight, Sparkles } from 'lucide-react';
+import { ArrowRight } from 'lucide-react';
 import { COUNTRIES } from '../data/part1Data';
 import {
   HOBBIES,
@@ -77,15 +77,7 @@ export function Part3ReviewTab({
   );
 
   return (
-    <div className="space-y-5">
-      <div className="rounded-2xl border border-amber-200 bg-amber-50/70 p-3.5">
-        <h2 className="text-sm font-extrabold text-stone-900">
-          Part 3 · Sở thích (しゅみ) & Tự giới thiệu (自己紹介)
-        </h2>
-        <p className="text-xs text-stone-600">
-          Ôn đủ 14 từ sở thích, cấu trúc nối と, câu đáp こちらこそ và luyện kỹ năng soi lỗi trước khi vào Quiz.
-        </p>
-      </div>
+    <div className="space-y-4">
 
       <section className="rounded-2xl border border-stone-200 bg-white p-4 shadow-xs">
         <h3 className="mb-3 text-sm font-extrabold text-stone-900">
@@ -159,18 +151,10 @@ export function Part3ReviewTab({
         </section>
       </div>
 
-      <section className="rounded-2xl border border-stone-200 bg-white p-4 shadow-xs">
-        <div className="mb-3 flex items-center gap-2">
-          <Sparkles className="h-4 w-4 text-amber-600" />
-          <div>
-            <h3 className="text-sm font-extrabold text-stone-900">
-              Xưởng ghép Jikoshoukai chuẩn ngữ pháp (Tự vá ngoại lệ)
-            </h3>
-            <p className="text-xs text-stone-500">
-              Thử đổi tuổi = 20 hoặc ngày sinh đặc biệt (1–10, 14, 20, 24) để kiểm tra cách đọc chuẩn.
-            </p>
-          </div>
-        </div>
+      <section className="rounded-xl border border-stone-200 bg-white p-3.5 shadow-2xs sm:p-4">
+        <h3 className="mb-3 text-sm font-extrabold text-stone-900">
+          Xưởng ghép Jikoshoukai
+        </h3>
 
         <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-4">
           <label className="block text-xs">
@@ -310,20 +294,17 @@ export function Part3ReviewTab({
           ))}
         </div>
 
-        <div className="mt-4 flex flex-wrap items-center justify-between gap-3 border-t border-stone-200 pt-3">
-          <span className="text-xs text-stone-600">
-            Đọc xong cả 3 Part là đủ hành trang vào Bước 2 chơi 4 chặng Mini-Game!
-          </span>
+        <div className="mt-4 flex justify-end border-t border-stone-100 pt-3">
           <button
             type="button"
             onClick={onComplete}
             className={`flex items-center gap-1.5 rounded-xl px-4 py-2 text-xs font-extrabold transition ${
               isCompleted
-                ? 'bg-emerald-100 text-emerald-800'
+                ? 'bg-emerald-100 text-emerald-800 hover:bg-emerald-200'
                 : 'bg-red-700 text-white hover:bg-red-800'
             }`}
           >
-            <span>{isCompleted ? 'Chơi tiếp 4 Chặng Mini-Game' : 'Xong Lý thuyết → Chơi 4 Chặng Mini-Game'}</span>
+            <span>{isCompleted ? 'Sang Luyện tập 4 chặng' : 'Tiếp tục: Luyện tập 4 chặng'}</span>
             <ArrowRight className="h-4 w-4" />
           </button>
         </div>
