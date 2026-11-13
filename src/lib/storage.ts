@@ -60,9 +60,9 @@ export function loadReviewProgress(): ReviewProgressState {
   }
 
   return {
-    part1Completed: Boolean(raw.part1Completed),
-    part2Completed: Boolean(raw.part2Completed),
-    part3Completed: Boolean(raw.part3Completed),
+    part1Completed: raw.part1Completed === true,
+    part2Completed: raw.part2Completed === true,
+    part3Completed: raw.part3Completed === true,
     completedGames: Array.isArray(raw.completedGames)
       ? (raw.completedGames.filter((item): item is Phase1GameId =>
           item === 'tinder' || item === 'match' || item === 'tiles' || item === 'bug'
@@ -76,12 +76,15 @@ export function loadReviewProgress(): ReviewProgressState {
         ? raw.displayMode
         : 'full',
     timerStartedAtMs:
-      typeof raw.timerStartedAtMs === 'number' && Number.isFinite(raw.timerStartedAtMs)
+      typeof raw.timerStartedAtMs === 'number' &&
+      Number.isFinite(raw.timerStartedAtMs) &&
+      raw.timerStartedAtMs > 0
         ? raw.timerStartedAtMs
         : null,
     pausedRemainingSeconds:
       typeof raw.pausedRemainingSeconds === 'number' &&
-      Number.isFinite(raw.pausedRemainingSeconds)
+      Number.isFinite(raw.pausedRemainingSeconds) &&
+      raw.pausedRemainingSeconds >= 0
         ? raw.pausedRemainingSeconds
         : null,
   };
