@@ -34,7 +34,8 @@ export function Part3ReviewTab({
   const [countryId, setCountryId] = useState('c2');
   const [schoolKana, setSchoolKana] = useState('FPTだいがく');
   const [schoolVi, setSchoolVi] = useState('Đại học FPT');
-  const [age, setAge] = useState(20);
+  const [ageInput, setAgeInput] = useState('20');
+  const age = Math.min(99, Math.max(1, Number.parseInt(ageInput, 10) || 20));
   const [birthMonth, setBirthMonth] = useState(12);
   const [birthDay, setBirthDay] = useState(8);
   const [hobby1Id, setHobby1Id] = useState('h3');
@@ -299,8 +300,9 @@ export function Part3ReviewTab({
               type="number"
               min={1}
               max={99}
-              value={age}
-              onChange={(e) => setAge(Number(e.target.value) || 20)}
+              value={ageInput}
+              onChange={(e) => setAgeInput(e.target.value)}
+              onBlur={() => setAgeInput(String(age))}
               className="mt-1 w-full rounded-lg border border-stone-300 px-2.5 py-1.5 text-xs font-semibold"
             />
           </label>
