@@ -23,7 +23,10 @@ export function BugHunterGame({
   onGoToPhase2,
 }: BugHunterGameProps) {
   const [fixedKeys, setFixedKeys] = useState<Record<string, boolean>>({});
-  const [wrongMsg, setWrongMsg] = useState<string | null>(null);
+  const [wrongFeedback, setWrongFeedback] = useState<{
+    caseId: string;
+    message: string;
+  } | null>(null);
 
   const allBugKeys = getAllBugKeys(BUG_HUNT_CASES);
   const fixedTotal = allBugKeys.filter((k) => fixedKeys[k]).length;
@@ -32,12 +35,15 @@ export function BugHunterGame({
   const handleSegmentClick = (caseId: string, segId: string, isBug: boolean) => {
     const key = `${caseId}:${segId}`;
     if (!isBug) {
-      setWrongMsg('Cụm này chuẩn ngữ pháp rồi — hãy soi kỹ xưng hô, quốc tịch, tuổi & ngày!');
+      setWrongFeedback({
+        caseId,
+        message: 'Cụm này chuẩn ngữ pháp rồi — hãy soi kỹ xưng hô, quốc tịch, tuổi & ngày!',
+      });
       onRecordWeakNote('Soi Bug: Nhầm cụm đúng ngữ pháp thành lỗi sai.');
       return;
     }
 
-    setWrongMsg(null);
+    setWrongFeedback(null);
     if (fixedKeys[key]) return;
 
     const nextFixed = { ...fixedKeys, [key]: true };
@@ -65,12 +71,6 @@ export function BugHunterGame({
           {fixedTotal} / {allBugKeys.length} lỗi
         </span>
       </div>
-
-      {wrongMsg && (
-        <p className="rounded-xl border border-amber-300 bg-amber-50 px-3.5 py-2 text-xs font-semibold text-amber-900">
-          {wrongMsg}
-        </p>
-      )}
 
       {BUG_HUNT_CASES.map((huntCase) => {
         const caseBugs = huntCase.segments.filter((s) => s.isBug);
@@ -109,6 +109,12 @@ export function BugHunterGame({
                 );
               })}
             </div>
+
+            {wrongFeedback?.caseId === huntCase.id && (
+              <p className="mt-3 rounded-xl border border-amber-300 bg-amber-50 px-3.5 py-2 text-xs font-semibold text-amber-900">
+                {wrongFeedback.message}
+              </p>
+            )}
 
             {caseFixedCount > 0 && (
               <div className="mt-3 space-y-1.5">
