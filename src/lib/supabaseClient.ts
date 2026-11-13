@@ -309,7 +309,8 @@ export async function fetchScoreboardEntries(): Promise<ScoreboardEntry[]> {
 
 export function subscribeScoreboardChanges(
   onNewEntry: (entry: ScoreboardEntry) => void,
-  onStatusChange?: (status: string) => void
+  onStatusChange?: (status: string) => void,
+  onPostgresReady?: () => void
 ): () => void {
   if (!isSupabaseConfigured) {
     onStatusChange?.('LOCAL_DEMO');
@@ -327,6 +328,15 @@ export function subscribeScoreboardChanges(
       const channelName = `scoreboard:entries:${++realtimeChannelSeq}:${Date.now()}`;
       activeChannel = client
         .channel(channelName)
+        .on('system', {}, (payload: { status?: string; extension?: string }) => {
+          if (
+            !disposed &&
+            payload?.extension === 'postgres_changes' &&
+            payload?.status === 'ok'
+          ) {
+            onPostgresReady?.();
+          }
+        })
         .on(
           'postgres_changes',
           {
