@@ -1,4 +1,4 @@
-import { createClient, type RealtimeChannel } from '@supabase/supabase-js';
+import type { RealtimeChannel, SupabaseClient } from '@supabase/supabase-js';
 import type {
   ChoiceKey,
   GradedQuestionResult,
@@ -14,9 +14,19 @@ import {
 
 export { isSupabaseConfigured };
 
-export const supabase = isSupabaseConfigured
-  ? createClient(supabaseEnv.url, supabaseEnv.anonKey)
-  : null;
+let clientPromise: Promise<SupabaseClient | null> | null = null;
+
+async function getSupabaseClient(): Promise<SupabaseClient | null> {
+  if (!isSupabaseConfigured) {
+    return null;
+  }
+  if (!clientPromise) {
+    clientPromise = import('@supabase/supabase-js').then(({ createClient }) =>
+      createClient(supabaseEnv.url, supabaseEnv.anonKey)
+    );
+  }
+  return clientPromise;
+}
 
 export function normalizeStudentCode(rawCode: string): string {
   return rawCode.trim().replace(/\s+/g, '').toUpperCase();
@@ -40,8 +50,9 @@ export async function startQuizSession(
     throw new Error('MSSV hoặc mã định danh phải từ 2 đến 24 ký tự.');
   }
 
-  if (supabase) {
-    const { data, error } = await supabase.rpc('start_quiz_attempt', {
+  const client = await getSupabaseClient();
+  if (client) {
+    const { data, error } = await client.rpc('start_quiz_attempt', {
       p_student_name: studentName,
       p_student_code: studentCode,
     });
@@ -64,6 +75,7 @@ export async function startQuizSession(
       studentName: payload.student_name,
       studentCode: payload.student_code,
       startedAt: payload.started_at,
+      localStartedAtMs: Date.now(),
       mode: 'supabase',
     };
   }
@@ -83,6 +95,7 @@ export async function startQuizSession(
     studentName,
     studentCode,
     startedAt: new Date().toISOString(),
+    localStartedAtMs: Date.now(),
     mode: 'local-demo',
   };
 }
@@ -96,8 +109,9 @@ export async function submitQuizSession(
     stringKeyAnswers[String(k)] = v;
   }
 
-  if (supabase && session.mode === 'supabase') {
-    const { data, error } = await supabase.rpc('submit_quiz_attempt', {
+  const client = await getSupabaseClient();
+  if (client && session.mode === 'supabase') {
+    const { data, error } = await client.rpc('submit_quiz_attempt', {
       p_attempt_id: session.attemptId,
       p_answers: stringKeyAnswers,
     });
@@ -106,14 +120,18 @@ export async function submitQuizSession(
       throw new Error(error.message || 'Không thể nộp bài lên Supabase.');
     }
 
-    return data as QuizSubmissionResult;
+    return {
+      ...(data as QuizSubmissionResult),
+      mode: 'supabase',
+    };
   }
 
   // Local Demo Mode: statically guarded so Vite strips the demo answer chunk when Supabase env vars are set
   if (!import.meta.env.VITE_SUPABASE_URL || !import.meta.env.VITE_SUPABASE_ANON_KEY) {
     const { LOCAL_DEMO_ANSWER_KEY } = await import('../data/localDemoAnswerKey');
     const submittedAt = new Date().toISOString();
-    const startedMs = new Date(session.startedAt).getTime();
+    const startedMs =
+      session.localStartedAtMs ?? new Date(session.startedAt).getTime();
     const durationMs = Math.max(
       0,
       Number.isFinite(startedMs) ? Date.now() - startedMs : 0
@@ -156,6 +174,7 @@ export async function submitQuizSession(
       total_questions: LOCAL_DEMO_ANSWER_KEY.length,
       duration_ms: durationMs,
       submitted_at: submittedAt,
+      mode: 'local-demo',
       results,
     };
   }
@@ -164,22 +183,51 @@ export async function submitQuizSession(
 }
 
 export async function fetchScoreboardEntries(): Promise<ScoreboardEntry[]> {
-  if (supabase) {
-    const { data, error } = await supabase
-      .from('scoreboard_entries')
-      .select(
-        'id, attempt_id, student_name, student_code, attempt_number, score, total_questions, duration_ms, submitted_at'
-      )
-      .order('score', { ascending: false })
-      .order('duration_ms', { ascending: true })
-      .order('submitted_at', { ascending: true })
-      .limit(200);
+  const client = await getSupabaseClient();
+  if (client) {
+    // Query Attempt 1 explicitly (matching idx_scoreboard_ranking) alongside top overall
+    // attempts so retakes cannot crowd out Attempt 1 prize candidates above 200 rows.
+    const [firstAttemptRes, allAttemptsRes] = await Promise.all([
+      client
+        .from('scoreboard_entries')
+        .select(
+          'id, attempt_id, student_name, student_code, attempt_number, score, total_questions, duration_ms, submitted_at'
+        )
+        .eq('attempt_number', 1)
+        .order('score', { ascending: false })
+        .order('duration_ms', { ascending: true })
+        .order('submitted_at', { ascending: true })
+        .limit(200),
+      client
+        .from('scoreboard_entries')
+        .select(
+          'id, attempt_id, student_name, student_code, attempt_number, score, total_questions, duration_ms, submitted_at'
+        )
+        .order('score', { ascending: false })
+        .order('duration_ms', { ascending: true })
+        .order('submitted_at', { ascending: true })
+        .limit(200),
+    ]);
 
-    if (error) {
-      throw new Error(error.message || 'Không thể tải Scoreboard.');
+    if (firstAttemptRes.error) {
+      throw new Error(
+        firstAttemptRes.error.message || 'Không thể tải Scoreboard.'
+      );
+    }
+    if (allAttemptsRes.error) {
+      throw new Error(
+        allAttemptsRes.error.message || 'Không thể tải Scoreboard.'
+      );
     }
 
-    return (data ?? []) as ScoreboardEntry[];
+    const merged = new Map<string, ScoreboardEntry>();
+    for (const row of (firstAttemptRes.data ?? []) as ScoreboardEntry[]) {
+      merged.set(row.attempt_id, row);
+    }
+    for (const row of (allAttemptsRes.data ?? []) as ScoreboardEntry[]) {
+      merged.set(row.attempt_id, row);
+    }
+    return Array.from(merged.values());
   }
 
   return loadLocalDemoScoreboard();
@@ -189,31 +237,42 @@ export function subscribeScoreboardChanges(
   onNewEntry: (entry: ScoreboardEntry) => void,
   onStatusChange?: (status: string) => void
 ): () => void {
-  if (!supabase) {
+  if (!isSupabaseConfigured) {
     onStatusChange?.('LOCAL_DEMO');
     return () => {};
   }
 
-  const channel: RealtimeChannel = supabase
-    .channel('public:scoreboard_entries')
-    .on(
-      'postgres_changes',
-      {
-        event: 'INSERT',
-        schema: 'public',
-        table: 'scoreboard_entries',
-      },
-      (payload) => {
-        if (payload.new) {
-          onNewEntry(payload.new as ScoreboardEntry);
+  let disposed = false;
+  let activeClient: SupabaseClient | null = null;
+  let activeChannel: RealtimeChannel | null = null;
+
+  void getSupabaseClient().then((client) => {
+    if (disposed || !client) return;
+    activeClient = client;
+    activeChannel = client
+      .channel('public:scoreboard_entries')
+      .on(
+        'postgres_changes',
+        {
+          event: 'INSERT',
+          schema: 'public',
+          table: 'scoreboard_entries',
+        },
+        (payload) => {
+          if (payload.new) {
+            onNewEntry(payload.new as ScoreboardEntry);
+          }
         }
-      }
-    )
-    .subscribe((status) => {
-      onStatusChange?.(status);
-    });
+      )
+      .subscribe((status) => {
+        onStatusChange?.(status);
+      });
+  });
 
   return () => {
-    void supabase.removeChannel(channel);
+    disposed = true;
+    if (activeClient && activeChannel) {
+      void activeClient.removeChannel(activeChannel);
+    }
   };
 }

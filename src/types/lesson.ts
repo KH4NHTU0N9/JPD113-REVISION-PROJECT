@@ -148,6 +148,7 @@ export interface QuizAttemptSession {
   studentName: string;
   studentCode: string;
   startedAt: string;
+  localStartedAtMs?: number;
   mode: 'supabase' | 'local-demo';
 }
 
@@ -161,6 +162,7 @@ export interface QuizSubmissionResult {
   duration_ms: number;
   submitted_at: string;
   already_submitted?: boolean;
+  mode?: 'supabase' | 'local-demo';
   results: GradedQuestionResult[];
 }
 
