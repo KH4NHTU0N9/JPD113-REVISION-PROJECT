@@ -1,8 +1,6 @@
 -- JPD113 Bai 1 Revision & Live Scoreboard Schema
 -- Run this entire script once in Supabase SQL Editor.
 
-create extension if not exists pgcrypto;
-
 -- 1. Answer key table: completely hidden from anon/authenticated clients
 create table if not exists public.quiz_answer_key (
   question_id integer primary key check (question_id between 1 and 20),
@@ -126,6 +124,30 @@ begin
   -- Serialize concurrent starts for the same student_code
   perform pg_advisory_xact_lock(hashtext('jpd113_attempt_' || v_code));
 
+  -- Prevent opening a 2nd attempt while attempt #1 (or any prior attempt) is still in progress:
+  -- resumes the active attempt smoothly instead of allowing answer-key peeking via attempt #2.
+  select *
+  into v_attempt
+  from public.quiz_attempts
+  where student_code = v_code
+    and status = 'in_progress'
+  order by attempt_number asc
+  limit 1;
+
+  if found then
+    if lower(v_attempt.student_name) <> lower(v_name) then
+      raise exception 'MSSV % đang có một lượt làm bài chưa nộp dưới tên "%". Hãy dùng đúng họ tên đã đăng ký hoặc hoàn tất lượt hiện tại.', v_code, v_attempt.student_name;
+    end if;
+
+    return jsonb_build_object(
+      'attempt_id', v_attempt.id,
+      'attempt_number', v_attempt.attempt_number,
+      'student_name', v_attempt.student_name,
+      'student_code', v_attempt.student_code,
+      'started_at', v_attempt.started_at
+    );
+  end if;
+
   select coalesce(max(attempt_number), 0) + 1
   into v_next_attempt
   from public.quiz_attempts
@@ -167,8 +189,13 @@ set search_path = ''
 as $$
 declare
   v_attempt public.quiz_attempts%rowtype;
-  v_answers jsonb := coalesce(p_answers, '{}'::jsonb);
+  v_raw_answers jsonb := case
+    when p_answers is not null and jsonb_typeof(p_answers) = 'object' then p_answers
+    else '{}'::jsonb
+  end;
+  v_clean_answers jsonb := '{}'::jsonb;
   v_now timestamptz := clock_timestamp();
+  v_raw_duration_ms bigint;
   v_duration_ms integer;
   v_score integer := 0;
   v_results jsonb := '[]'::jsonb;
@@ -192,13 +219,13 @@ begin
 
   if v_attempt.status = 'submitted' then
     -- Idempotent replay for mobile network retries
-    v_answers := coalesce(v_attempt.answers, '{}'::jsonb);
+    v_clean_answers := coalesce(v_attempt.answers, '{}'::jsonb);
     for v_key in
       select question_id, correct_choice, explanation
       from public.quiz_answer_key
       order by question_id asc
     loop
-      v_selected := v_answers ->> (v_key.question_id::text);
+      v_selected := v_clean_answers ->> (v_key.question_id::text);
       v_is_correct := (v_selected is not null and v_selected = v_key.correct_choice);
       v_results := v_results || jsonb_build_array(
         jsonb_build_object(
@@ -225,17 +252,24 @@ begin
     );
   end if;
 
-  v_duration_ms := greatest(
-    0,
-    floor(extract(epoch from (v_now - v_attempt.started_at)) * 1000)::integer
+  v_raw_duration_ms := greatest(
+    0::bigint,
+    floor(extract(epoch from (v_now - v_attempt.started_at)) * 1000)::bigint
   );
+  v_duration_ms := least(2147483647::bigint, v_raw_duration_ms)::integer;
 
   for v_key in
     select question_id, correct_choice, explanation
     from public.quiz_answer_key
     order by question_id asc
   loop
-    v_selected := v_answers ->> (v_key.question_id::text);
+    v_selected := v_raw_answers ->> (v_key.question_id::text);
+    if v_selected not in ('A', 'B', 'C', 'D') then
+      v_selected := null;
+    else
+      v_clean_answers := v_clean_answers || jsonb_build_object(v_key.question_id::text, v_selected);
+    end if;
+
     v_is_correct := (v_selected is not null and v_selected = v_key.correct_choice);
     if v_is_correct then
       v_score := v_score + 1;
@@ -258,7 +292,7 @@ begin
     submitted_at = v_now,
     duration_ms = v_duration_ms,
     score = v_score,
-    answers = v_answers
+    answers = v_clean_answers
   where id = v_attempt.id;
 
   insert into public.scoreboard_entries (
