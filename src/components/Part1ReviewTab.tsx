@@ -42,27 +42,40 @@ function VocabListCard({
 
   if (visibleItems.length === 0) return null;
 
+  const shouldMaskByDefault = hideReading || displayMode === 'challenge';
+  const maskScope = `${displayMode}:${String(hideReading)}`;
+
   return (
     <section className="rounded-2xl border border-stone-200 bg-white p-4 shadow-xs">
       <h3 className="mb-3 text-sm font-extrabold text-stone-900">{title}</h3>
       <div className="divide-y divide-stone-100">
         {visibleItems.map((item) => {
-          const isMasked =
-            hideReading ||
-            (displayMode === 'challenge' && !revealedIds[item.id]);
+          const revealKey = `${maskScope}:${item.id}`;
+          const hasSeparateReading = item.kanji !== item.kana;
+          const canToggleMask = shouldMaskByDefault && (hasSeparateReading || displayMode === 'full');
+          const isMasked = shouldMaskByDefault && !revealedIds[revealKey];
+
           return (
             <div
               key={item.id}
-              onClick={() =>
-                setRevealedIds((prev) => ({ ...prev, [item.id]: !prev[item.id] }))
+              onClick={
+                canToggleMask
+                  ? () =>
+                      setRevealedIds((prev) => ({
+                        ...prev,
+                        [revealKey]: !prev[revealKey],
+                      }))
+                  : undefined
               }
-              className="flex cursor-pointer flex-col gap-1 py-2.5 sm:flex-row sm:items-center sm:justify-between"
+              className={`flex flex-col gap-1 py-2.5 sm:flex-row sm:items-center sm:justify-between ${
+                canToggleMask ? 'cursor-pointer hover:bg-stone-50/70' : ''
+              }`}
             >
               <div className="flex flex-wrap items-baseline gap-2">
                 <span className="font-jp text-base font-bold text-stone-900">
                   {item.kanji}
                 </span>
-                {item.kanji !== item.kana && (
+                {hasSeparateReading && (
                   <span
                     className={`font-jp text-sm text-red-700 transition ${
                       isMasked ? 'rounded bg-stone-200 px-1.5 text-transparent select-none' : ''
@@ -74,6 +87,11 @@ function VocabListCard({
                 {displayMode === 'full' && !isMasked && (
                   <span className="text-xs font-medium text-stone-500">
                     [{item.romaji}]
+                  </span>
+                )}
+                {canToggleMask && isMasked && !hasSeparateReading && (
+                  <span className="rounded bg-stone-100 px-1.5 py-0.5 text-[10px] font-semibold text-stone-400">
+                    Chạm xem romaji
                   </span>
                 )}
                 {item.isTrap && (
