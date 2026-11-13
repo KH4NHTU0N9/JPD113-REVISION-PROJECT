@@ -66,7 +66,7 @@ export function Phase1Container({
           </div>
         </div>
 
-        <div className="mt-3 grid grid-cols-3 gap-2">
+        <div className="mt-3 grid grid-cols-1 gap-2 sm:grid-cols-3">
           {[
             {
               id: 'part1' as const,
@@ -95,13 +95,14 @@ export function Phase1Container({
               }`}
             >
               {tab.done && <CheckCircle2 className="h-3.5 w-3.5 shrink-0 text-emerald-600" />}
-              <span className="truncate">{tab.label}</span>
+              <span>{tab.label}</span>
             </button>
           ))}
         </div>
       </div>
 
-      {activeTab === 'part1' && (
+      {/* Keep tabs mounted so students retain drill selections & Jikoshoukai builder state when switching */}
+      <div className={activeTab === 'part1' ? 'block' : 'hidden'}>
         <Part1ReviewTab
           displayMode={displayMode}
           isCompleted={progress.part1Completed}
@@ -111,9 +112,9 @@ export function Phase1Container({
           }}
           onRecordWeakNote={onRecordWeakNote}
         />
-      )}
+      </div>
 
-      {activeTab === 'part2' && (
+      <div className={activeTab === 'part2' ? 'block' : 'hidden'}>
         <Part2ReviewTab
           displayMode={displayMode}
           isCompleted={progress.part2Completed}
@@ -123,16 +124,16 @@ export function Phase1Container({
           }}
           onRecordWeakNote={onRecordWeakNote}
         />
-      )}
+      </div>
 
-      {activeTab === 'part3' && (
+      <div className={activeTab === 'part3' ? 'block' : 'hidden'}>
         <Part3ReviewTab
           displayMode={displayMode}
           isCompleted={progress.part3Completed}
           onComplete={() => onCompletePart('part3')}
           onRecordWeakNote={onRecordWeakNote}
         />
-      )}
+      </div>
 
       <section className="rounded-2xl border border-stone-200 bg-white p-4 shadow-xs">
         <div className="mb-2 flex items-center gap-2">
