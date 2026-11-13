@@ -5,6 +5,7 @@ import {
   formatBirthdayJp,
 } from '../japaneseFormatters';
 import {
+  buildRankedScoreboardView,
   buildScoreboardCsv,
   escapeCsvCell,
   formatDurationMs,
@@ -155,5 +156,32 @@ describe('Scoreboard Tie-Breaker & CSV Export', () => {
     expect(csv.startsWith('\uFEFF')).toBe(true);
     expect(csv).toContain('\r\n');
     expect(csv).toContain('"Lê B"');
+  });
+
+  it('preserves true full-class rank when filtering scoreboard with searchQuery', () => {
+    const view = buildRankedScoreboardView(sampleEntries, 'first-only', 'SE01');
+    expect(view.allRanked.map((item) => item.student_code)).toEqual(['SE02', 'SE01']);
+    expect(view.filteredEntries).toHaveLength(1);
+    expect(view.filteredEntries[0].attempt_id).toBe('a1');
+    expect(view.rankByAttemptId.get('a1')).toBe(2);
+    expect(view.rankByAttemptId.get('a2')).toBe(1);
+  });
+
+  it('handles invalid submitted_at timestamps deterministically without breaking strict weak ordering', () => {
+    const badDateEntry: ScoreboardEntry = {
+      id: 'bad',
+      attempt_id: 'bad',
+      student_code: 'SE03',
+      student_name: 'Phạm C',
+      attempt_number: 1,
+      score: 18,
+      total_questions: 20,
+      duration_ms: 82000,
+      submitted_at: 'invalid-iso-date',
+    };
+    const ranked = rankScoreboardEntries([badDateEntry, sampleEntries[1]], 'all');
+    expect(ranked).toHaveLength(2);
+    expect(ranked[0].attempt_id).toBe('a2');
+    expect(ranked[1].attempt_id).toBe('bad');
   });
 });
