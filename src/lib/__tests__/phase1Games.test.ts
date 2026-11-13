@@ -6,7 +6,6 @@ import {
   TRAP_SWIPE_CARDS,
 } from '../../data/phase1Games';
 import {
-  calculateSwipeXp,
   evaluateSentenceTiles,
   formatElapsedTenths,
   shuffleItems,
@@ -78,15 +77,11 @@ describe('Phase 1 Mini-Game Data & Evaluators', () => {
     }
   });
 
-  it('shuffles without mutating, caps swipe combo XP at 4x, and safely formats time', () => {
+  it('shuffles without mutating and safely formats elapsed seconds', () => {
     const src = [1, 2, 3, 4, 5];
     const out = shuffleItems(src, () => 0.25);
     expect(src).toEqual([1, 2, 3, 4, 5]);
     expect([...out].sort((a, b) => a - b)).toEqual([1, 2, 3, 4, 5]);
-
-    expect(calculateSwipeXp(1)).toBe(10);
-    expect(calculateSwipeXp(3)).toBe(30);
-    expect(calculateSwipeXp(9)).toBe(40);
 
     expect(formatElapsedTenths(8450)).toBe('8.4s');
     expect(formatElapsedTenths(-500)).toBe('0.0s');

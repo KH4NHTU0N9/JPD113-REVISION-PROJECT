@@ -1,11 +1,11 @@
 import { useState } from 'react';
 import { ArrowRight, Bug, CheckCircle2 } from 'lucide-react';
 import { BUG_HUNT_CASES } from '../../data/phase1Games';
-import type { BugHuntCase, Phase1GameId } from '../../types/lesson';
+import type { BugHuntCase } from '../../types/lesson';
 
 interface BugHunterGameProps {
   isCompleted: boolean;
-  onAwardProgress: (deltaXp: number, combo: number, completedGame?: Phase1GameId) => void;
+  onComplete: () => void;
   onRecordWeakNote: (note: string) => void;
   onGoToPhase2: () => void;
 }
@@ -18,13 +18,12 @@ function getAllBugKeys(cases: readonly BugHuntCase[]): string[] {
 
 export function BugHunterGame({
   isCompleted,
-  onAwardProgress,
+  onComplete,
   onRecordWeakNote,
   onGoToPhase2,
 }: BugHunterGameProps) {
   const [fixedKeys, setFixedKeys] = useState<Record<string, boolean>>({});
   const [wrongMsg, setWrongMsg] = useState<string | null>(null);
-  const [bugCombo, setBugCombo] = useState(0);
 
   const allBugKeys = getAllBugKeys(BUG_HUNT_CASES);
   const fixedTotal = allBugKeys.filter((k) => fixedKeys[k]).length;
@@ -33,7 +32,6 @@ export function BugHunterGame({
   const handleSegmentClick = (caseId: string, segId: string, isBug: boolean) => {
     const key = `${caseId}:${segId}`;
     if (!isBug) {
-      setBugCombo(0);
       setWrongMsg('Cụm này chuẩn ngữ pháp rồi — hãy soi kỹ xưng hô, quốc tịch, tuổi & ngày!');
       onRecordWeakNote('Soi Bug: Nhầm cụm đúng ngữ pháp thành lỗi sai.');
       return;
@@ -43,12 +41,11 @@ export function BugHunterGame({
     if (fixedKeys[key]) return;
 
     const nextFixed = { ...fixedKeys, [key]: true };
-    const nextCombo = bugCombo + 1;
     setFixedKeys(nextFixed);
-    setBugCombo(nextCombo);
 
-    const isNowComplete = allBugKeys.every((k) => Boolean(nextFixed[k]));
-    onAwardProgress(isNowComplete ? 80 : 30, nextCombo, isNowComplete ? 'bug' : undefined);
+    if (allBugKeys.every((k) => Boolean(nextFixed[k]))) {
+      onComplete();
+    }
   };
 
   return (
@@ -57,7 +54,7 @@ export function BugHunterGame({
         <div className="flex items-center gap-2">
           <Bug className="h-4 w-4 text-red-700" />
           <span className="text-sm font-extrabold text-stone-900">
-            Thám tử Bắt Lỗi · Tìm & chạm sửa {allBugKeys.length} bug kinh điển
+            Soi lỗi sai · Tìm và chạm sửa {allBugKeys.length} lỗi hay gặp nhất
           </span>
         </div>
         <span
@@ -67,7 +64,7 @@ export function BugHunterGame({
               : 'bg-red-100 text-red-800'
           }`}
         >
-          Đã vá {fixedTotal} / {allBugKeys.length} lỗi
+          Đã sửa {fixedTotal} / {allBugKeys.length} lỗi
         </span>
       </div>
 
@@ -149,8 +146,8 @@ export function BugHunterGame({
           />
           <span>
             {allCleared || isCompleted
-              ? 'Quá đỉnh! Bạn đã vá sạch bẫy Bài 1 — sẵn sàng săn điểm Top Quiz!'
-              : 'Vá hết 7 lỗi trên hoặc bấm vào Quiz bất cứ lúc nào.'}
+              ? 'Hoàn thành toàn bộ phần ôn tập — sẵn sàng làm Quiz 20 câu!'
+              : 'Sửa hết 7 lỗi trên hoặc chuyển sang Quiz bất cứ lúc nào.'}
           </span>
         </div>
         <button
@@ -158,7 +155,7 @@ export function BugHunterGame({
           onClick={onGoToPhase2}
           className="flex items-center gap-2 rounded-xl bg-red-700 px-5 py-2.5 text-sm font-extrabold text-white shadow-xs transition hover:bg-red-800"
         >
-          <span>Vào Phase 2: Quiz 20 câu</span>
+          <span>Vào Bước 3: Quiz 20 câu</span>
           <ArrowRight className="h-4 w-4" />
         </button>
       </div>

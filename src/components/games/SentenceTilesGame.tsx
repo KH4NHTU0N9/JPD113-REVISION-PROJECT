@@ -6,12 +6,12 @@ import {
   shuffleItems,
   type TileEvaluationResult,
 } from '../../lib/phase1GameUtils';
-import type { DisplayMode, Phase1GameId, SentenceTileToken } from '../../types/lesson';
+import type { DisplayMode, SentenceTileToken } from '../../types/lesson';
 
 interface SentenceTilesGameProps {
   displayMode: DisplayMode;
   isCompleted: boolean;
-  onAwardProgress: (deltaXp: number, combo: number, completedGame?: Phase1GameId) => void;
+  onComplete: () => void;
   onRecordWeakNote: (note: string) => void;
   onNextStage: () => void;
 }
@@ -19,7 +19,7 @@ interface SentenceTilesGameProps {
 export function SentenceTilesGame({
   displayMode,
   isCompleted,
-  onAwardProgress,
+  onComplete,
   onRecordWeakNote,
   onNextStage,
 }: SentenceTilesGameProps) {
@@ -64,8 +64,9 @@ export function SentenceTilesGame({
       if (!isCurrentSolved) {
         const nextSolved = [...solvedIds, currentPuzzle.id];
         setSolvedIds(nextSolved);
-        const stageCleared = nextSolved.length === SENTENCE_TILE_PUZZLES.length;
-        onAwardProgress(45, nextSolved.length, stageCleared ? 'tiles' : undefined);
+        if (nextSolved.length === SENTENCE_TILE_PUZZLES.length) {
+          onComplete();
+        }
       }
       return;
     }
@@ -129,7 +130,7 @@ export function SentenceTilesGame({
         >
           {selectedIds.length === 0 ? (
             <span className="text-xs font-medium text-stone-400">
-              Chạm lần lượt các mảnh từ bên dưới để ghép câu (đừng chọn mảnh bẫy!)...
+              Chạm lần lượt các mảnh từ bên dưới để ghép câu (né mảnh bẫy thừa)...
             </span>
           ) : (
             selectedIds.map((id) => {
@@ -237,7 +238,7 @@ export function SentenceTilesGame({
               onClick={onNextStage}
               className="flex items-center gap-1.5 rounded-xl bg-emerald-600 px-5 py-2.5 text-xs font-extrabold text-white hover:bg-emerald-700"
             >
-              <span>{allSolved ? 'Tuyệt! Sang Chặng 4: Soi Bug' : 'Sang Chặng 4: Soi Bug'}</span>
+              <span>{allSolved ? 'Hoàn thành! Sang Chặng 4: Soi Bug' : 'Sang Chặng 4: Soi Bug'}</span>
               <ArrowRight className="h-3.5 w-3.5" />
             </button>
           )}

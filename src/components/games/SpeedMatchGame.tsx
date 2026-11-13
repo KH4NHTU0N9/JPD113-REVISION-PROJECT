@@ -1,13 +1,13 @@
 import { useEffect, useState } from 'react';
-import { ArrowRight, Check, RotateCcw, Timer, Trophy } from 'lucide-react';
+import { ArrowRight, Check, CheckCircle2, RotateCcw, Timer } from 'lucide-react';
 import { MATCH_ROUNDS } from '../../data/phase1Games';
 import { formatElapsedTenths, shuffleItems } from '../../lib/phase1GameUtils';
-import type { DisplayMode, MatchPairItem, Phase1GameId } from '../../types/lesson';
+import type { DisplayMode, MatchPairItem } from '../../types/lesson';
 
 interface SpeedMatchGameProps {
   displayMode: DisplayMode;
   isCompleted: boolean;
-  onAwardProgress: (deltaXp: number, combo: number, completedGame?: Phase1GameId) => void;
+  onComplete: () => void;
   onRecordWeakNote: (note: string) => void;
   onNextStage: () => void;
 }
@@ -15,7 +15,7 @@ interface SpeedMatchGameProps {
 export function SpeedMatchGame({
   displayMode,
   isCompleted,
-  onAwardProgress,
+  onComplete,
   onRecordWeakNote,
   onNextStage,
 }: SpeedMatchGameProps) {
@@ -35,7 +35,6 @@ export function SpeedMatchGame({
   const [wrongPair, setWrongPair] = useState<{ left: string; right: string } | null>(null);
   const [errorHint, setErrorHint] = useState<string | null>(null);
   const [errors, setErrors] = useState(0);
-  const [combo, setCombo] = useState(0);
   const [startedAtMs, setStartedAtMs] = useState<number | null>(null);
   const [elapsedMs, setElapsedMs] = useState(0);
   const [clearedRoundTimes, setClearedRoundTimes] = useState<Record<string, number>>({});
@@ -53,7 +52,6 @@ export function SpeedMatchGame({
     setWrongPair(null);
     setErrorHint(null);
     setErrors(0);
-    setCombo(0);
     setStartedAtMs(null);
     setElapsedMs(0);
   };
@@ -75,23 +73,20 @@ export function SpeedMatchGame({
   const tryMatch = (leftId: string, rightId: string) => {
     if (leftId === rightId) {
       const nextMatched = [...matchedIds, leftId];
-      const nextCombo = combo + 1;
       setMatchedIds(nextMatched);
       setSelectedLeftId(null);
       setSelectedRightId(null);
       setWrongPair(null);
       setErrorHint(null);
-      setCombo(nextCombo);
 
       if (nextMatched.length === currentRound.pairs.length) {
         const finalDuration = startedAtMs ? Date.now() - startedAtMs : elapsedMs;
         setElapsedMs(finalDuration);
         const nextTimes = { ...clearedRoundTimes, [currentRound.id]: finalDuration };
         setClearedRoundTimes(nextTimes);
-        const allRoundsDone = Object.keys(nextTimes).length === MATCH_ROUNDS.length;
-        onAwardProgress(60, nextCombo, allRoundsDone ? 'match' : undefined);
-      } else {
-        onAwardProgress(20, nextCombo);
+        if (Object.keys(nextTimes).length === MATCH_ROUNDS.length) {
+          onComplete();
+        }
       }
       return;
     }
@@ -99,7 +94,6 @@ export function SpeedMatchGame({
     setWrongPair({ left: leftId, right: rightId });
     setSelectedLeftId(null);
     setSelectedRightId(null);
-    setCombo(0);
     setErrors((prev) => prev + 1);
 
     const expectedPair = currentRound.pairs.find((p) => p.id === leftId);
@@ -162,7 +156,7 @@ export function SpeedMatchGame({
           })}
           {isCompleted && (
             <span className="rounded-full bg-emerald-100 px-2 py-0.5 text-[11px] font-bold text-emerald-800">
-              Đã phá đảo 3 vòng
+              Đã xong 3 vòng
             </span>
           )}
         </div>
@@ -172,14 +166,14 @@ export function SpeedMatchGame({
             <Timer className="h-3.5 w-3.5 text-red-700" />
             {formatElapsedTenths(elapsedMs)}
           </span>
-          <span className="text-stone-500">Lỗi: {errors}</span>
+          <span className="text-stone-500">Nhầm: {errors}</span>
           <button
             type="button"
             onClick={() => initRound(roundIdx)}
             className="flex items-center gap-1 text-stone-500 hover:text-stone-900"
           >
             <RotateCcw className="h-3.5 w-3.5" />
-            Chơi lại
+            Làm lại
           </button>
         </div>
       </div>
@@ -197,12 +191,12 @@ export function SpeedMatchGame({
 
       {isRoundCleared ? (
         <div className="mt-4 rounded-2xl border border-emerald-200 bg-emerald-50/70 p-5 text-center">
-          <Trophy className="mx-auto h-7 w-7 text-emerald-600" />
+          <CheckCircle2 className="mx-auto h-7 w-7 text-emerald-600" />
           <p className="mt-2 text-base font-extrabold text-emerald-900">
-            Dọn sạch Vòng {roundIdx + 1} trong {formatElapsedTenths(elapsedMs)}!
+            Hoàn thành Vòng {roundIdx + 1} trong {formatElapsedTenths(elapsedMs)}
           </p>
           <p className="mt-0.5 text-xs text-emerald-800">
-            {errors === 0 ? 'Không sai nhịp nào — quá mượt!' : `Số lần ghép nhầm: ${errors}`}
+            {errors === 0 ? 'Không ghép nhầm cặp nào!' : `Số lần ghép nhầm: ${errors}`}
           </p>
           <div className="mt-4 flex flex-wrap justify-center gap-2">
             <button
@@ -210,7 +204,7 @@ export function SpeedMatchGame({
               onClick={() => initRound(roundIdx)}
               className="rounded-xl border border-stone-300 bg-white px-4 py-2 text-xs font-bold text-stone-700 hover:bg-stone-50"
             >
-              Đua lại phá kỷ lục
+              Làm lại vòng này
             </button>
             {roundIdx + 1 < MATCH_ROUNDS.length ? (
               <button

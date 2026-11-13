@@ -13,8 +13,6 @@ export interface ReviewProgressState {
   part2Completed: boolean;
   part3Completed: boolean;
   completedGames: Phase1GameId[];
-  phase1Xp: number;
-  phase1BestCombo: number;
   weakNotes: string[];
   displayMode: DisplayMode;
   timerStartedAtMs: number | null;
@@ -26,8 +24,6 @@ const DEFAULT_PROGRESS: ReviewProgressState = {
   part2Completed: false,
   part3Completed: false,
   completedGames: [],
-  phase1Xp: 0,
-  phase1BestCombo: 0,
   weakNotes: [],
   displayMode: 'full',
   timerStartedAtMs: null,

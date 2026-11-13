@@ -17,14 +17,6 @@ export function shuffleItems<T>(
   return copy;
 }
 
-/**
- * Compute XP reward scaled modestly by streak combo (capped at 4x multiplier).
- */
-export function calculateSwipeXp(combo: number): number {
-  const multiplier = Math.max(1, Math.min(4, combo));
-  return 10 * multiplier;
-}
-
 export interface TileEvaluationResult {
   isCorrect: boolean;
   reason: string;

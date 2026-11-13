@@ -181,22 +181,12 @@ export default function App() {
     }));
   };
 
-  const handleAwardGameProgress = (
-    deltaXp: number,
-    combo: number,
-    completedGame?: Phase1GameId
-  ) => {
+  const handleCompleteGame = (completedGame: Phase1GameId) => {
     updateProgress((prev) => {
-      const nextGames =
-        completedGame && !prev.completedGames.includes(completedGame)
-          ? [...prev.completedGames, completedGame]
-          : prev.completedGames;
-
+      if (prev.completedGames.includes(completedGame)) return prev;
       return {
         ...prev,
-        completedGames: nextGames,
-        phase1Xp: prev.phase1Xp + Math.max(0, deltaXp),
-        phase1BestCombo: Math.max(prev.phase1BestCombo, combo),
+        completedGames: [...prev.completedGames, completedGame],
       };
     });
   };
@@ -230,7 +220,7 @@ export default function App() {
             progress={progress}
             displayMode={progress.displayMode}
             onCompletePart={handleCompletePart}
-            onAwardGameProgress={handleAwardGameProgress}
+            onCompleteGame={handleCompleteGame}
             onRecordWeakNote={handleRecordWeakNote}
             onGoToPhase2={() => handleRouteChange('phase2')}
           />

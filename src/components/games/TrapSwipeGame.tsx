@@ -1,14 +1,14 @@
 import { useCallback, useEffect, useState } from 'react';
-import { ArrowRight, CheckCircle2, Flame, RotateCcw, ShieldAlert, XCircle } from 'lucide-react';
+import { ArrowRight, CheckCircle2, RotateCcw, ShieldAlert, XCircle } from 'lucide-react';
 import { TRAP_SWIPE_CARDS } from '../../data/phase1Games';
-import { calculateSwipeXp, shuffleItems } from '../../lib/phase1GameUtils';
-import type { DisplayMode, Phase1GameId, TrapSwipeCard } from '../../types/lesson';
+import { shuffleItems } from '../../lib/phase1GameUtils';
+import type { DisplayMode, TrapSwipeCard } from '../../types/lesson';
 
 interface TrapSwipeGameProps {
   displayMode: DisplayMode;
   isCompleted: boolean;
   keyboardEnabled: boolean;
-  onAwardProgress: (deltaXp: number, combo: number, completedGame?: Phase1GameId) => void;
+  onComplete: () => void;
   onRecordWeakNote: (note: string) => void;
   onNextStage: () => void;
 }
@@ -17,15 +17,13 @@ export function TrapSwipeGame({
   displayMode,
   isCompleted,
   keyboardEnabled,
-  onAwardProgress,
+  onComplete,
   onRecordWeakNote,
   onNextStage,
 }: TrapSwipeGameProps) {
   const [deck, setDeck] = useState<TrapSwipeCard[]>(() => shuffleItems(TRAP_SWIPE_CARDS));
   const [index, setIndex] = useState(0);
   const [chosenValid, setChosenValid] = useState<boolean | null>(null);
-  const [combo, setCombo] = useState(0);
-  const [bestCombo, setBestCombo] = useState(0);
   const [correctCount, setCorrectCount] = useState(0);
   const [missedIds, setMissedIds] = useState<string[]>([]);
   const [finished, setFinished] = useState(false);
@@ -39,7 +37,6 @@ export function TrapSwipeGame({
     setDeck(shuffleItems(cards));
     setIndex(0);
     setChosenValid(null);
-    setCombo(0);
     setCorrectCount(0);
     setMissedIds([]);
     setFinished(false);
@@ -52,32 +49,27 @@ export function TrapSwipeGame({
 
       const isRight = userThinksValid === currentCard.isCorrectStatement;
       if (isRight) {
-        const nextCombo = combo + 1;
-        setCombo(nextCombo);
-        setBestCombo((prev) => Math.max(prev, nextCombo));
         setCorrectCount((prev) => prev + 1);
-        onAwardProgress(calculateSwipeXp(nextCombo), nextCombo);
         return;
       }
 
-      setCombo(0);
       setMissedIds((prev) =>
         prev.includes(currentCard.id) ? prev : [...prev, currentCard.id]
       );
       onRecordWeakNote(`${currentCard.category}: ${currentCard.fixText}`);
     },
-    [chosenValid, combo, currentCard, finished, onAwardProgress, onRecordWeakNote]
+    [chosenValid, currentCard, finished, onRecordWeakNote]
   );
 
   const handleNext = useCallback(() => {
     if (index + 1 >= deck.length) {
       setFinished(true);
-      onAwardProgress(40, combo, 'tinder');
+      onComplete();
       return;
     }
     setIndex((prev) => prev + 1);
     setChosenValid(null);
-  }, [combo, deck.length, index, onAwardProgress]);
+  }, [deck.length, index, onComplete]);
 
   useEffect(() => {
     if (!keyboardEnabled || finished) return;
@@ -121,7 +113,9 @@ export function TrapSwipeGame({
           Xong Chặng 1 · Đúng {correctCount}/{deck.length} thẻ
         </h3>
         <p className="mt-1 text-xs text-stone-500">
-          Chuỗi Combo cao nhất: <strong className="text-amber-600">x{bestCombo}</strong>
+          {missedCards.length === 0
+            ? 'Không dính bẫy nào — rất chắc kiến thức!'
+            : `Còn ${missedCards.length} câu bẫy bạn nên xem lại trước khi vào Quiz.`}
         </p>
 
         <div className="mt-5 flex flex-wrap items-center justify-center gap-2.5">
@@ -132,7 +126,7 @@ export function TrapSwipeGame({
               className="flex items-center gap-1.5 rounded-xl border border-amber-300 bg-amber-50 px-4 py-2.5 text-xs font-extrabold text-amber-900 hover:bg-amber-100"
             >
               <RotateCcw className="h-3.5 w-3.5" />
-              Đánh lại {missedCards.length} câu vừa nhầm
+              Luyện lại {missedCards.length} câu vừa nhầm
             </button>
           )}
           <button
@@ -141,7 +135,7 @@ export function TrapSwipeGame({
             className="flex items-center gap-1.5 rounded-xl border border-stone-200 bg-stone-50 px-4 py-2.5 text-xs font-bold text-stone-700 hover:bg-stone-100"
           >
             <RotateCcw className="h-3.5 w-3.5" />
-            Chơi lại cả 12 thẻ
+            Làm lại 12 thẻ
           </button>
           <button
             type="button"
@@ -167,12 +161,6 @@ export function TrapSwipeGame({
           <span className="rounded-full bg-stone-100 px-2.5 py-1 text-xs font-extrabold text-stone-700">
             Thẻ {index + 1} / {deck.length}
           </span>
-          {combo >= 2 && (
-            <span className="flex items-center gap-1 rounded-full bg-amber-100 px-2.5 py-1 text-xs font-extrabold text-amber-800">
-              <Flame className="h-3.5 w-3.5 text-amber-600" />
-              Combo x{combo}
-            </span>
-          )}
           {isCompleted && (
             <span className="rounded-full bg-emerald-100 px-2.5 py-1 text-[11px] font-bold text-emerald-800">
               Đã hoàn thành
@@ -229,9 +217,7 @@ export function TrapSwipeGame({
               {wasCorrect ? (
                 <>
                   <CheckCircle2 className="h-4 w-4 text-emerald-600" />
-                  <span className="text-emerald-800">
-                    Chuẩn xác! (+{calculateSwipeXp(combo)} XP)
-                  </span>
+                  <span className="text-emerald-800">Chuẩn xác!</span>
                 </>
               ) : (
                 <>

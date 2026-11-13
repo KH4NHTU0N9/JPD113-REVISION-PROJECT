@@ -4,12 +4,10 @@ import {
   BookOpen,
   Bug,
   CheckCircle2,
-  Flame,
   Gamepad2,
   Lightbulb,
   Puzzle,
   ShieldAlert,
-  Sparkles,
   Zap,
 } from 'lucide-react';
 import { SIX_GOLDEN_TRAPS } from '../data/phase1Games';
@@ -35,11 +33,7 @@ interface Phase1ContainerProps {
   progress: ReviewProgressState;
   displayMode: DisplayMode;
   onCompletePart: (part: 'part1' | 'part2' | 'part3') => void;
-  onAwardGameProgress: (
-    deltaXp: number,
-    combo: number,
-    completedGame?: Phase1GameId
-  ) => void;
+  onCompleteGame: (completedGame: Phase1GameId) => void;
   onRecordWeakNote: (note: string) => void;
   onGoToPhase2: () => void;
 }
@@ -60,7 +54,7 @@ export function Phase1Container({
   progress,
   displayMode,
   onCompletePart,
-  onAwardGameProgress,
+  onCompleteGame,
   onRecordWeakNote,
   onGoToPhase2,
 }: Phase1ContainerProps) {
@@ -106,7 +100,7 @@ export function Phase1Container({
               <BookOpen className="h-4 w-4 shrink-0 text-red-700" />
               <div>
                 <p className="text-xs font-extrabold">Bước 1 · Lý thuyết (Part 1·2·3)</p>
-                <p className="text-[11px] opacity-80">Đọc lướt 2–3p trước khi chơi</p>
+                <p className="text-[11px] opacity-80">Đọc lướt 2–3p trước khi luyện tập</p>
               </div>
             </div>
             <span className="rounded-full bg-white px-2 py-0.5 text-[11px] font-extrabold text-stone-700 shadow-2xs">
@@ -126,12 +120,8 @@ export function Phase1Container({
             <div className="flex items-center gap-2">
               <Gamepad2 className="h-4 w-4 shrink-0 text-red-700" />
               <div>
-                <p className="text-xs font-extrabold">Bước 2 · 4 Chặng Mini-Game</p>
-                <p className="text-[11px] opacity-80">
-                  {progress.phase1Xp > 0
-                    ? `${progress.phase1Xp} XP · Combo x${progress.phase1BestCombo}`
-                    : 'Gỡ bẫy · Ghép · Xếp · Soi Bug'}
-                </p>
+                <p className="text-xs font-extrabold">Bước 2 · Luyện tập 4 chặng</p>
+                <p className="text-[11px] opacity-80">Gỡ bẫy · Ghép · Xếp câu · Soi Bug</p>
               </div>
             </div>
             <span className="rounded-full bg-white px-2 py-0.5 text-[11px] font-extrabold text-stone-700 shadow-2xs">
@@ -184,32 +174,8 @@ export function Phase1Container({
             ))}
           </div>
         ) : (
-          <div className="mt-3 space-y-2.5">
-            <div className="flex flex-wrap items-center justify-between gap-2 rounded-xl bg-stone-50 px-3 py-2">
-              <div className="flex flex-wrap items-center gap-2">
-                <span className="flex items-center gap-1 rounded-full bg-amber-100 px-2.5 py-0.5 text-xs font-extrabold text-amber-900">
-                  <Sparkles className="h-3.5 w-3.5 text-amber-600" />
-                  {progress.phase1Xp} XP
-                </span>
-                {progress.phase1BestCombo >= 2 && (
-                  <span className="flex items-center gap-1 rounded-full bg-red-100 px-2.5 py-0.5 text-xs font-extrabold text-red-800">
-                    <Flame className="h-3.5 w-3.5 text-red-600" />
-                    Max x{progress.phase1BestCombo}
-                  </span>
-                )}
-              </div>
-
-              <button
-                type="button"
-                onClick={() => openQuickSheet(currentStageMeta.hintTab)}
-                className="flex items-center gap-1.5 rounded-lg border border-amber-300 bg-amber-50 px-2.5 py-1 text-xs font-extrabold text-amber-900 transition hover:bg-amber-100"
-              >
-                <Lightbulb className="h-3.5 w-3.5 text-amber-600" />
-                <span>Quên luật? Xem nhanh lý thuyết</span>
-              </button>
-            </div>
-
-            <div className="grid grid-cols-2 gap-2 sm:grid-cols-4">
+          <div className="mt-3 flex flex-col gap-2 sm:flex-row sm:items-center sm:justify-between">
+            <div className="grid flex-1 grid-cols-2 gap-2 sm:grid-cols-4">
               {GAME_STAGES.map((stage) => {
                 const Icon = stage.icon;
                 const isActive = activeStage === stage.id;
@@ -238,6 +204,15 @@ export function Phase1Container({
                 );
               })}
             </div>
+
+            <button
+              type="button"
+              onClick={() => openQuickSheet(currentStageMeta.hintTab)}
+              className="flex shrink-0 items-center justify-center gap-1.5 rounded-xl border border-amber-300 bg-amber-50 px-3 py-2 text-xs font-extrabold text-amber-900 transition hover:bg-amber-100"
+            >
+              <Lightbulb className="h-3.5 w-3.5 text-amber-600" />
+              <span>Xem nhanh lý thuyết</span>
+            </button>
           </div>
         )}
       </section>
@@ -283,7 +258,7 @@ export function Phase1Container({
           <div className="mb-2 flex items-center gap-2">
             <ShieldAlert className="h-4 w-4 text-red-700" />
             <h3 className="text-sm font-extrabold text-stone-900">
-              Bảng tổng hợp 6 lưu ý vàng trước khi sang Chơi Mini-Game & Quiz
+              Bảng tổng hợp 6 lưu ý vàng trước khi sang Luyện tập & Quiz
             </h3>
           </div>
           <ul className="grid gap-1.5 text-xs text-stone-700 sm:grid-cols-2">
@@ -301,21 +276,21 @@ export function Phase1Container({
               className="flex items-center gap-2 rounded-xl bg-red-700 px-5 py-2.5 text-sm font-extrabold text-white shadow-sm hover:bg-red-800"
             >
               <Gamepad2 className="h-4 w-4" />
-              <span>Đã xem Lý thuyết → Chơi 4 Chặng Mini-Game</span>
+              <span>Đã xem Lý thuyết → Luyện tập 4 chặng</span>
               <ArrowRight className="h-4 w-4" />
             </button>
           </div>
         </section>
       </div>
 
-      {/* Step 2: 4 Mini-Games Arena (kept mounted so players retain combo/round/tile progress) */}
+      {/* Step 2: 4 Practice Stages (kept mounted so players retain progress when re-checking Theory) */}
       <div className={activeStep === 'games' ? 'space-y-4' : 'hidden'}>
         <div className={activeStage === 'tinder' ? 'block' : 'hidden'}>
           <TrapSwipeGame
             displayMode={displayMode}
             isCompleted={progress.completedGames.includes('tinder')}
             keyboardEnabled={activeStep === 'games' && activeStage === 'tinder' && !cheatSheetOpen}
-            onAwardProgress={onAwardGameProgress}
+            onComplete={() => onCompleteGame('tinder')}
             onRecordWeakNote={onRecordWeakNote}
             onNextStage={() => setActiveStage('match')}
           />
@@ -325,7 +300,7 @@ export function Phase1Container({
           <SpeedMatchGame
             displayMode={displayMode}
             isCompleted={progress.completedGames.includes('match')}
-            onAwardProgress={onAwardGameProgress}
+            onComplete={() => onCompleteGame('match')}
             onRecordWeakNote={onRecordWeakNote}
             onNextStage={() => setActiveStage('tiles')}
           />
@@ -335,7 +310,7 @@ export function Phase1Container({
           <SentenceTilesGame
             displayMode={displayMode}
             isCompleted={progress.completedGames.includes('tiles')}
-            onAwardProgress={onAwardGameProgress}
+            onComplete={() => onCompleteGame('tiles')}
             onRecordWeakNote={onRecordWeakNote}
             onNextStage={() => setActiveStage('bug')}
           />
@@ -344,7 +319,7 @@ export function Phase1Container({
         <div className={activeStage === 'bug' ? 'block' : 'hidden'}>
           <BugHunterGame
             isCompleted={progress.completedGames.includes('bug')}
-            onAwardProgress={onAwardGameProgress}
+            onComplete={() => onCompleteGame('bug')}
             onRecordWeakNote={onRecordWeakNote}
             onGoToPhase2={onGoToPhase2}
           />
