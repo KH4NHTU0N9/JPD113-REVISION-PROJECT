@@ -1,4 +1,4 @@
-import { useEffect, useState } from 'react';
+import { useEffect, useRef, useState } from 'react';
 import {
   AlertCircle,
   ArrowLeft,
@@ -106,6 +106,10 @@ export function Phase2QuizRunner({
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [submitError, setSubmitError] = useState<string | null>(null);
   const [confirmIncomplete, setConfirmIncomplete] = useState(false);
+  const [confirmSwitchStudent, setConfirmSwitchStudent] = useState(false);
+  const startingRef = useRef(false);
+  const submittingRef = useRef(false);
+  const mountedRef = useRef(true);
 
   const [result, setResult] = useState<QuizSubmissionResult | null>(() => {
     const savedResult = loadSavedQuizResult();
@@ -113,6 +117,13 @@ export function Phase2QuizRunner({
     return !savedResult.mode || savedResult.mode === expectedMode ? savedResult : null;
   });
   const [showWrongOnly, setShowWrongOnly] = useState(false);
+
+  useEffect(() => {
+    mountedRef.current = true;
+    return () => {
+      mountedRef.current = false;
+    };
+  }, []);
 
   useEffect(() => {
     const savedSession = loadSavedSession();
@@ -125,6 +136,15 @@ export function Phase2QuizRunner({
       saveQuizResult(null);
     }
   }, [expectedMode]);
+
+  useEffect(() => {
+    if (!session) return;
+    const serializable: Record<string, string> = {};
+    for (const [k, v] of Object.entries(answers)) {
+      serializable[String(k)] = v;
+    }
+    saveActiveAnswers(serializable);
+  }, [answers, session]);
 
   useEffect(() => {
     if (!session) {
@@ -146,76 +166,110 @@ export function Phase2QuizRunner({
     };
     document.addEventListener('visibilitychange', handleVisibility);
     window.addEventListener('focus', updateClock);
+    window.addEventListener('pageshow', updateClock);
 
     return () => {
       window.clearInterval(id);
       document.removeEventListener('visibilitychange', handleVisibility);
       window.removeEventListener('focus', updateClock);
+      window.removeEventListener('pageshow', updateClock);
     };
   }, [session]);
 
   const handleStartQuiz = async (e: React.FormEvent) => {
     e.preventDefault();
+    if (startingRef.current || isStarting) return;
+    startingRef.current = true;
     setStartError(null);
     setIsStarting(true);
     try {
+      const previousSession = loadSavedSession();
       const newSession = await startQuizSession(studentName, studentCode);
+      const isSameActiveAttempt = previousSession?.attemptId === newSession.attemptId;
+
+      saveActiveSession(newSession);
+      saveQuizResult(null);
+      if (!isSameActiveAttempt) {
+        saveActiveAnswers({});
+      }
+
+      if (!mountedRef.current) return;
+
       setSession(newSession);
-      setAnswers({});
-      setCurrentIndex(0);
+      if (!isSameActiveAttempt) {
+        setAnswers({});
+        setCurrentIndex(0);
+      }
       setResult(null);
       setConfirmIncomplete(false);
-      saveActiveSession(newSession);
-      saveActiveAnswers({});
-      saveQuizResult(null);
+      setConfirmSwitchStudent(false);
+      setSubmitError(null);
     } catch (err) {
+      if (!mountedRef.current) return;
       setStartError(
         err instanceof Error ? err.message : 'Không thể bắt đầu bài thi.'
       );
     } finally {
-      setIsStarting(false);
+      startingRef.current = false;
+      if (mountedRef.current) {
+        setIsStarting(false);
+      }
     }
   };
 
   const handleSelectOption = (questionId: number, choice: ChoiceKey) => {
+    if (submittingRef.current || isSubmitting) return;
     setConfirmIncomplete(false);
-    setAnswers((prev) => {
-      const next = { ...prev, [questionId]: choice };
-      const serializable: Record<string, string> = {};
-      for (const [k, v] of Object.entries(next)) {
-        serializable[String(k)] = v;
-      }
-      saveActiveAnswers(serializable);
-      return next;
-    });
+    setSubmitError(null);
+    setAnswers((prev) => ({ ...prev, [questionId]: choice }));
   };
 
   const handleSubmit = async (force = false) => {
-    if (!session || isSubmitting) return;
-    const answeredCount = Object.keys(answers).length;
+    if (!session || submittingRef.current || isSubmitting) return;
+    const answersSnapshot = { ...answers };
+    const answeredCount = Object.keys(answersSnapshot).length;
     if (!force && answeredCount < WORKBOOK_QUESTIONS.length) {
       setConfirmIncomplete(true);
       return;
     }
 
+    submittingRef.current = true;
     setSubmitError(null);
     setConfirmIncomplete(false);
+    setConfirmSwitchStudent(false);
     setIsSubmitting(true);
     try {
-      const graded = await submitQuizSession(session, answers);
-      setResult(graded);
-      setSession(null);
+      const graded = await submitQuizSession(session, answersSnapshot);
       saveQuizResult(graded);
       saveActiveSession(null);
       saveActiveAnswers({});
       onScoreboardMutated();
+      if (!mountedRef.current) return;
+      setResult(graded);
+      setSession(null);
     } catch (err) {
+      if (!mountedRef.current) return;
       setSubmitError(
         err instanceof Error ? err.message : 'Lỗi khi nộp bài, vui lòng bấm thử lại.'
       );
     } finally {
-      setIsSubmitting(false);
+      submittingRef.current = false;
+      if (mountedRef.current) {
+        setIsSubmitting(false);
+      }
     }
+  };
+
+  const handleResetLocalSession = () => {
+    if (submittingRef.current || isSubmitting) return;
+    saveActiveSession(null);
+    saveActiveAnswers({});
+    setSession(null);
+    setAnswers({});
+    setCurrentIndex(0);
+    setSubmitError(null);
+    setConfirmIncomplete(false);
+    setConfirmSwitchStudent(false);
   };
 
   const handleStartNewAttempt = () => {
@@ -468,13 +522,41 @@ export function Phase2QuizRunner({
   return (
     <div className="space-y-4">
       <div className="flex flex-wrap items-center justify-between gap-2 rounded-2xl border border-stone-200 bg-white px-4 py-3 shadow-xs">
-        <div className="text-xs">
+        <div className="flex flex-wrap items-center gap-2 text-xs">
           <span className="font-extrabold text-stone-900">
             {session.studentName} ({session.studentCode})
           </span>
-          <span className="ml-2 rounded-full bg-stone-100 px-2 py-0.5 text-[11px] font-bold text-stone-600">
+          <span className="rounded-full bg-stone-100 px-2 py-0.5 text-[11px] font-bold text-stone-600">
             Lượt {session.attemptNumber}
           </span>
+          {!confirmSwitchStudent ? (
+            <button
+              type="button"
+              disabled={isSubmitting}
+              onClick={() => setConfirmSwitchStudent(true)}
+              className="rounded-lg border border-stone-200 px-2 py-0.5 text-[11px] font-semibold text-stone-500 hover:bg-stone-50 hover:text-stone-800 disabled:opacity-40"
+            >
+              Đổi SV
+            </button>
+          ) : (
+            <div className="flex items-center gap-1.5">
+              <button
+                type="button"
+                disabled={isSubmitting}
+                onClick={handleResetLocalSession}
+                className="rounded-lg bg-red-700 px-2 py-0.5 text-[11px] font-bold text-white hover:bg-red-800"
+              >
+                Xác nhận đổi SV
+              </button>
+              <button
+                type="button"
+                onClick={() => setConfirmSwitchStudent(false)}
+                className="rounded-lg border border-stone-200 px-2 py-0.5 text-[11px] font-semibold text-stone-600"
+              >
+                Huỷ
+              </button>
+            </div>
+          )}
         </div>
         <div className="flex items-center gap-3 text-xs font-bold">
           <span className="text-stone-600">
@@ -545,8 +627,9 @@ export function Phase2QuizRunner({
               <button
                 key={key}
                 type="button"
+                disabled={isSubmitting}
                 onClick={() => handleSelectOption(currentQuestion.id, key)}
-                className={`flex items-center gap-3 rounded-xl border p-3.5 text-left text-sm transition ${
+                className={`flex items-center gap-3 rounded-xl border p-3.5 text-left text-sm transition disabled:opacity-60 ${
                   isSelected
                     ? 'border-red-600 bg-red-50 font-bold text-red-900 ring-1 ring-red-600'
                     : 'border-stone-200 bg-white text-stone-800 hover:border-stone-400 hover:bg-stone-50'
@@ -575,15 +658,17 @@ export function Phase2QuizRunner({
             <div className="mt-2 flex gap-2">
               <button
                 type="button"
+                disabled={isSubmitting}
                 onClick={() => void handleSubmit(true)}
-                className="rounded-lg bg-red-700 px-3 py-1.5 font-extrabold text-white"
+                className="rounded-lg bg-red-700 px-3 py-1.5 font-extrabold text-white disabled:opacity-60"
               >
                 Chắc chắn nộp bài
               </button>
               <button
                 type="button"
+                disabled={isSubmitting}
                 onClick={() => setConfirmIncomplete(false)}
-                className="rounded-lg border border-stone-300 bg-white px-3 py-1.5 font-bold text-stone-700"
+                className="rounded-lg border border-stone-300 bg-white px-3 py-1.5 font-bold text-stone-700 disabled:opacity-60"
               >
                 Quay lại làm tiếp
               </button>
@@ -592,8 +677,16 @@ export function Phase2QuizRunner({
         )}
 
         {submitError && (
-          <div className="mt-3 rounded-xl bg-red-50 p-3 text-xs font-semibold text-red-700">
-            {submitError}
+          <div className="mt-3 flex flex-wrap items-center justify-between gap-2 rounded-xl bg-red-50 p-3 text-xs font-semibold text-red-700">
+            <span>{submitError}</span>
+            <button
+              type="button"
+              disabled={isSubmitting}
+              onClick={() => void handleSubmit(true)}
+              className="rounded-lg bg-red-700 px-3 py-1.5 text-[11px] font-extrabold text-white hover:bg-red-800 disabled:opacity-60"
+            >
+              Thử nộp lại ngay
+            </button>
           </div>
         )}
 
@@ -637,7 +730,7 @@ export function Phase2QuizRunner({
             ) : (
               <>
                 <Send className="h-3.5 w-3.5" />
-                <span>Nộp bài ({answeredCount}/20)</span>
+                <span>Nộp bài ({answeredCount}/{WORKBOOK_QUESTIONS.length})</span>
               </>
             )}
           </button>
