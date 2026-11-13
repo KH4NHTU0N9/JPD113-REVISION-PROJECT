@@ -177,3 +177,56 @@ export interface ScoreboardEntry {
   duration_ms: number;
   submitted_at: string;
 }
+
+export type Phase1GameId = 'tinder' | 'match' | 'tiles' | 'bug';
+
+export interface TrapSwipeCard {
+  id: string;
+  category: string;
+  statementJp: string;
+  romaji?: string;
+  contextVi?: string;
+  isCorrectStatement: boolean;
+  fixText: string;
+  explanation: string;
+}
+
+export interface MatchPairItem {
+  id: string;
+  leftText: string;
+  leftSub?: string;
+  rightText: string;
+  hintOnError: string;
+}
+
+export interface MatchRound {
+  id: string;
+  title: string;
+  subtitle: string;
+  pairs: MatchPairItem[];
+}
+
+export interface SentenceTileToken {
+  id: string;
+  text: string;
+  romaji?: string;
+  isTrap?: boolean;
+  trapReason?: string;
+}
+
+export interface SentenceTilePuzzle {
+  id: string;
+  title: string;
+  viPrompt: string;
+  tokens: SentenceTileToken[];
+  correctIds: string[];
+  explanation: string;
+}
+
+export interface BugHuntCase {
+  id: string;
+  title: string;
+  badge: string;
+  instruction: string;
+  segments: BugSegment[];
+}
