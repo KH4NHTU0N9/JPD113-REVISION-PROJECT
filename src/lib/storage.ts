@@ -30,11 +30,16 @@ const DEFAULT_PROGRESS: ReviewProgressState = {
   pausedRemainingSeconds: null,
 };
 
+function isPlainObject(value: unknown): value is Record<string, unknown> {
+  return typeof value === 'object' && value !== null && !Array.isArray(value);
+}
+
 function safeReadJson<T>(key: string, fallback: T): T {
   try {
     const raw = window.localStorage.getItem(`${STORAGE_PREFIX}${key}`);
     if (!raw) return fallback;
-    return JSON.parse(raw) as T;
+    const parsed: unknown = JSON.parse(raw);
+    return parsed === null ? fallback : (parsed as T);
   } catch {
     return fallback;
   }
@@ -49,9 +54,36 @@ function safeWriteJson<T>(key: string, value: T): void {
 }
 
 export function loadReviewProgress(): ReviewProgressState {
+  const raw = safeReadJson<unknown>('review_progress', null);
+  if (!isPlainObject(raw)) {
+    return { ...DEFAULT_PROGRESS };
+  }
+
   return {
-    ...DEFAULT_PROGRESS,
-    ...safeReadJson<Partial<ReviewProgressState>>('review_progress', {}),
+    part1Completed: Boolean(raw.part1Completed),
+    part2Completed: Boolean(raw.part2Completed),
+    part3Completed: Boolean(raw.part3Completed),
+    completedGames: Array.isArray(raw.completedGames)
+      ? (raw.completedGames.filter((item): item is Phase1GameId =>
+          item === 'tinder' || item === 'match' || item === 'tiles' || item === 'bug'
+        ))
+      : [],
+    weakNotes: Array.isArray(raw.weakNotes)
+      ? raw.weakNotes.filter((item): item is string => typeof item === 'string')
+      : [],
+    displayMode:
+      raw.displayMode === 'kana' || raw.displayMode === 'challenge'
+        ? raw.displayMode
+        : 'full',
+    timerStartedAtMs:
+      typeof raw.timerStartedAtMs === 'number' && Number.isFinite(raw.timerStartedAtMs)
+        ? raw.timerStartedAtMs
+        : null,
+    pausedRemainingSeconds:
+      typeof raw.pausedRemainingSeconds === 'number' &&
+      Number.isFinite(raw.pausedRemainingSeconds)
+        ? raw.pausedRemainingSeconds
+        : null,
   };
 }
 
@@ -60,7 +92,19 @@ export function saveReviewProgress(state: ReviewProgressState): void {
 }
 
 export function loadSavedSession(): QuizAttemptSession | null {
-  return safeReadJson<QuizAttemptSession | null>('active_quiz_session', null);
+  const raw = safeReadJson<unknown>('active_quiz_session', null);
+  if (
+    !isPlainObject(raw) ||
+    typeof raw.attemptId !== 'string' ||
+    typeof raw.attemptNumber !== 'number' ||
+    typeof raw.studentName !== 'string' ||
+    typeof raw.studentCode !== 'string' ||
+    typeof raw.startedAt !== 'string' ||
+    (raw.mode !== 'supabase' && raw.mode !== 'local-demo')
+  ) {
+    return null;
+  }
+  return raw as unknown as QuizAttemptSession;
 }
 
 export function saveActiveSession(session: QuizAttemptSession | null): void {
@@ -76,7 +120,17 @@ export function saveActiveSession(session: QuizAttemptSession | null): void {
 }
 
 export function loadSavedAnswers(): Record<string, string> {
-  return safeReadJson<Record<string, string>>('active_quiz_answers', {});
+  const raw = safeReadJson<unknown>('active_quiz_answers', null);
+  if (!isPlainObject(raw)) {
+    return {};
+  }
+  const clean: Record<string, string> = {};
+  for (const [k, v] of Object.entries(raw)) {
+    if (typeof v === 'string') {
+      clean[k] = v;
+    }
+  }
+  return clean;
 }
 
 export function saveActiveAnswers(answers: Record<string, string>): void {
@@ -84,7 +138,17 @@ export function saveActiveAnswers(answers: Record<string, string>): void {
 }
 
 export function loadSavedQuizResult(): QuizSubmissionResult | null {
-  return safeReadJson<QuizSubmissionResult | null>('last_quiz_result', null);
+  const raw = safeReadJson<unknown>('last_quiz_result', null);
+  if (
+    !isPlainObject(raw) ||
+    typeof raw.attempt_id !== 'string' ||
+    typeof raw.score !== 'number' ||
+    typeof raw.total_questions !== 'number' ||
+    !Array.isArray(raw.results)
+  ) {
+    return null;
+  }
+  return raw as unknown as QuizSubmissionResult;
 }
 
 export function saveQuizResult(result: QuizSubmissionResult | null): void {
@@ -100,7 +164,17 @@ export function saveQuizResult(result: QuizSubmissionResult | null): void {
 }
 
 export function loadLocalDemoScoreboard(): ScoreboardEntry[] {
-  return safeReadJson<ScoreboardEntry[]>('demo_scoreboard', []);
+  const raw = safeReadJson<unknown>('demo_scoreboard', []);
+  if (!Array.isArray(raw)) {
+    return [];
+  }
+  return raw.filter(
+    (item): item is ScoreboardEntry =>
+      isPlainObject(item) &&
+      typeof item.attempt_id === 'string' &&
+      typeof item.student_code === 'string' &&
+      typeof item.score === 'number'
+  );
 }
 
 export function appendLocalDemoScoreboard(entry: ScoreboardEntry): ScoreboardEntry[] {
