@@ -40,8 +40,8 @@ function VocabListCard({
   const maskScope = `${displayMode}:${String(hideReading)}`;
 
   return (
-    <section className="rounded-2xl border border-stone-200 bg-white p-4 shadow-xs">
-      <h3 className="mb-3 text-sm font-extrabold text-stone-900">{title}</h3>
+    <section className="rounded-xl border border-stone-200 bg-white p-3.5 shadow-2xs sm:p-4">
+      <h3 className="mb-2.5 text-sm font-extrabold text-stone-900">{title}</h3>
       <div className="divide-y divide-stone-100">
         {visibleItems.map((item) => {
           const revealKey = `${maskScope}:${item.id}`;
@@ -61,45 +61,45 @@ function VocabListCard({
                       }))
                   : undefined
               }
-              className={`flex flex-col gap-1 py-2.5 sm:flex-row sm:items-center sm:justify-between ${
-                canToggleMask ? 'cursor-pointer hover:bg-stone-50/70' : ''
-              }`}
+              className={`py-2 ${canToggleMask ? 'cursor-pointer hover:bg-stone-50/70' : ''}`}
             >
-              <div className="flex flex-wrap items-baseline gap-2">
-                <span className="font-jp text-base font-bold text-stone-900">
-                  {item.kanji}
+              <div className="flex items-baseline justify-between gap-3">
+                <div className="flex min-w-0 flex-wrap items-baseline gap-1.5">
+                  <span className="font-jp text-[15px] font-bold text-stone-900">
+                    {item.kanji}
+                  </span>
+                  {hasSeparateReading && (
+                    <span
+                      className={`font-jp text-sm text-red-700 transition ${
+                        isMasked ? 'rounded bg-stone-200 px-1.5 text-transparent select-none' : ''
+                      }`}
+                    >
+                      ({item.kana})
+                    </span>
+                  )}
+                  {displayMode === 'full' && !isMasked && (
+                    <span className="text-xs font-medium text-stone-400">
+                      [{item.romaji}]
+                    </span>
+                  )}
+                  {canToggleMask && isMasked && !hasSeparateReading && (
+                    <span className="rounded bg-stone-100 px-1.5 py-0.5 text-[10px] font-semibold text-stone-400">
+                      Chạm xem
+                    </span>
+                  )}
+                  {item.isTrap && (
+                    <span className="shrink-0 rounded bg-amber-100 px-1.5 py-0.5 text-[10px] font-bold text-amber-800">
+                      Bẫy
+                    </span>
+                  )}
+                </div>
+                <span className="max-w-[46%] shrink-0 text-right text-xs font-semibold text-stone-700">
+                  {item.meaning}
                 </span>
-                {hasSeparateReading && (
-                  <span
-                    className={`font-jp text-sm text-red-700 transition ${
-                      isMasked ? 'rounded bg-stone-200 px-1.5 text-transparent select-none' : ''
-                    }`}
-                  >
-                    ({item.kana})
-                  </span>
-                )}
-                {displayMode === 'full' && !isMasked && (
-                  <span className="text-xs font-medium text-stone-500">
-                    [{item.romaji}]
-                  </span>
-                )}
-                {canToggleMask && isMasked && !hasSeparateReading && (
-                  <span className="rounded bg-stone-100 px-1.5 py-0.5 text-[10px] font-semibold text-stone-400">
-                    Chạm xem romaji
-                  </span>
-                )}
-                {item.isTrap && (
-                  <span className="rounded-full bg-amber-100 px-2 py-0.5 text-[10px] font-bold text-amber-800">
-                    Bẫy thi
-                  </span>
-                )}
               </div>
-              <div className="text-xs text-stone-600 sm:text-right">
-                <span className="font-semibold text-stone-800">{item.meaning}</span>
-                {item.note && (
-                  <p className="mt-0.5 text-[11px] text-amber-700">{item.note}</p>
-                )}
-              </div>
+              {item.note && (
+                <p className="mt-0.5 text-[11px] leading-snug text-amber-700">{item.note}</p>
+              )}
             </div>
           );
         })}
