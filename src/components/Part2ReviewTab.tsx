@@ -47,9 +47,9 @@ export function Part2ReviewTab({
         </button>
       </div>
 
-      <section className="rounded-2xl border border-stone-200 bg-white p-4 shadow-xs">
+      <section className="rounded-xl border border-stone-200 bg-white p-3.5 shadow-2xs sm:p-4">
         <h3 className="mb-2 text-sm font-extrabold text-stone-900">
-          1. Đếm tuổi (年齢 – Nenrei)
+          1. Đếm tuổi (年齢)
         </h3>
         <ul className="mb-3 list-disc space-y-1 pl-4 text-xs text-stone-600">
           {AGE_RULES.map((r) => (
@@ -62,18 +62,16 @@ export function Part2ReviewTab({
               key={item.age}
               className={`rounded-xl border p-2.5 text-xs ${
                 item.age === 20
-                  ? 'border-red-300 bg-red-50'
-                  : item.isTrap
-                    ? 'border-amber-200 bg-amber-50/60'
-                    : 'border-stone-100 bg-stone-50'
+                  ? 'border-red-200 bg-red-50/40'
+                  : 'border-stone-200/80 bg-stone-50/50'
               }`}
             >
-              <div className="flex items-center justify-between">
-                <span className="font-extrabold text-stone-900">
+              <div className="flex items-center justify-between gap-2">
+                <span className="font-bold text-stone-800">
                   {item.age} tuổi ({item.kanji})
                 </span>
                 {item.isTrap && (
-                  <span className="rounded bg-red-100 px-1.5 py-0.5 text-[10px] font-bold text-red-800">
+                  <span className="rounded bg-amber-100 px-1.5 py-0.5 text-[10px] font-bold text-amber-800">
                     Bẫy
                   </span>
                 )}
@@ -82,25 +80,25 @@ export function Part2ReviewTab({
                 {item.kana}
               </p>
               {displayMode === 'full' && (
-                <p className="text-[11px] text-stone-500">{item.romaji}</p>
+                <p className="text-[11px] text-stone-400">{item.romaji}</p>
               )}
-              <p className="mt-0.5 text-[11px] text-stone-600">{item.note}</p>
+              <p className="mt-0.5 text-[11px] text-stone-500">{item.note}</p>
             </div>
           ))}
         </div>
       </section>
 
-      <section className="rounded-2xl border border-stone-200 bg-white p-4 shadow-xs">
-        <div className="mb-3 flex flex-wrap items-center justify-between gap-2">
+      <section className="rounded-xl border border-stone-200 bg-white p-3.5 shadow-2xs sm:p-4">
+        <div className="mb-2.5 flex flex-wrap items-center justify-between gap-2">
           <h3 className="text-sm font-extrabold text-stone-900">
-            2. Đếm ngày trong tháng (日付 – Hizuke)
+            2. Đếm ngày (日付)
           </h3>
-          <div className="flex items-center gap-2 text-[11px] font-bold">
-            <span className="rounded bg-red-100 px-2 py-0.5 text-red-800">
-              4日 よっか (Âm ngắt)
+          <div className="flex items-center gap-1.5 text-[11px] font-bold">
+            <span className="rounded bg-stone-100 px-2 py-0.5 text-red-700">
+              4日 よっか
             </span>
-            <span className="rounded bg-blue-100 px-2 py-0.5 text-blue-800">
-              8日 ようか (Trường âm)
+            <span className="rounded bg-stone-100 px-2 py-0.5 text-sky-700">
+              8日 ようか
             </span>
           </div>
         </div>
@@ -108,16 +106,10 @@ export function Part2ReviewTab({
           {visibleDays.map((d) => (
             <div
               key={d.day}
-              className={`rounded-xl border p-2.5 text-xs ${
-                d.missingFromPdfTable
-                  ? 'border-indigo-300 bg-indigo-50/70'
-                  : d.category === 'special'
-                    ? 'border-amber-200 bg-amber-50/60'
-                    : 'border-stone-100 bg-stone-50'
-              }`}
+              className="rounded-xl border border-stone-200/80 bg-stone-50/50 p-2.5 text-xs"
             >
               <div className="flex items-center justify-between gap-1">
-                <span className="font-extrabold text-stone-900">
+                <span className="font-bold text-stone-800">
                   Ngày {d.day} ({d.kanji})
                 </span>
                 {d.missingFromPdfTable ? (
@@ -132,17 +124,17 @@ export function Part2ReviewTab({
               </div>
               <p className="font-jp mt-1 text-sm font-bold text-red-700">{d.kana}</p>
               {displayMode === 'full' && (
-                <p className="text-[11px] text-stone-500">{d.romaji}</p>
+                <p className="text-[11px] text-stone-400">{d.romaji}</p>
               )}
-              <p className="mt-0.5 text-[11px] text-stone-600">{d.note}</p>
+              <p className="mt-0.5 text-[11px] text-stone-500">{d.note}</p>
             </div>
           ))}
         </div>
       </section>
 
-      <section className="rounded-2xl border border-stone-200 bg-white p-4 shadow-xs">
-        <h3 className="mb-3 text-sm font-extrabold text-stone-900">
-          3. 12 Tháng trong năm & Mẫu hỏi Ngày – Sinh nhật
+      <section className="rounded-xl border border-stone-200 bg-white p-3.5 shadow-2xs sm:p-4">
+        <h3 className="mb-2.5 text-sm font-extrabold text-stone-900">
+          3. 12 Tháng & Mẫu hỏi Ngày
         </h3>
         <div className="grid grid-cols-2 gap-2 sm:grid-cols-3 lg:grid-cols-4">
           {visibleMonths.map((m) => (
@@ -150,41 +142,41 @@ export function Part2ReviewTab({
               key={m.month}
               className={`rounded-xl border p-2.5 text-xs ${
                 m.isTrap
-                  ? 'border-red-300 bg-red-50'
-                  : 'border-stone-100 bg-stone-50'
+                  ? 'border-red-200 bg-red-50/35'
+                  : 'border-stone-200/80 bg-stone-50/50'
               }`}
             >
               <div className="flex items-center justify-between">
-                <span className="font-extrabold text-stone-900">
+                <span className="font-bold text-stone-800">
                   Tháng {m.month} ({m.kanji})
                 </span>
                 {m.isTrap && (
-                  <span className="rounded bg-red-200 px-1.5 py-0.5 text-[10px] font-bold text-red-900">
+                  <span className="rounded bg-red-100 px-1.5 py-0.5 text-[10px] font-bold text-red-800">
                     Bẫy
                   </span>
                 )}
               </div>
               <p className="font-jp mt-1 text-sm font-bold text-red-700">{m.kana}</p>
               {displayMode === 'full' && (
-                <p className="text-[11px] text-stone-500">{m.romaji}</p>
+                <p className="text-[11px] text-stone-400">{m.romaji}</p>
               )}
-              <p className="mt-0.5 text-[11px] text-stone-600">{m.note}</p>
+              <p className="mt-0.5 text-[11px] text-stone-500">{m.note}</p>
             </div>
           ))}
         </div>
 
-        <div className="mt-4 grid gap-2 sm:grid-cols-2">
+        <div className="mt-3 grid gap-2 sm:grid-cols-2">
           {DATE_QUESTION_PATTERNS.map((p) => (
             <div
               key={p.label}
-              className="rounded-xl border border-stone-200 bg-stone-50 p-3 text-xs"
+              className="rounded-xl border border-stone-200/80 bg-stone-50/50 p-3 text-xs"
             >
               <p className="font-bold text-stone-800">{p.label}</p>
               <p className="font-jp mt-1 text-sm font-bold text-red-700">
                 {p.questionJp}
               </p>
               {displayMode === 'full' && (
-                <p className="text-[11px] text-stone-500">{p.questionRomaji}</p>
+                <p className="text-[11px] text-stone-400">{p.questionRomaji}</p>
               )}
               <p className="font-jp mt-1 text-stone-700">→ {p.answerPattern}</p>
             </div>
