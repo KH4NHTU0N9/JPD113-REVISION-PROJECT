@@ -20,7 +20,12 @@ export function compareScoreboardEntries(
   }
   const timeA = new Date(a.submitted_at).getTime();
   const timeB = new Date(b.submitted_at).getTime();
-  if (Number.isFinite(timeA) && Number.isFinite(timeB) && timeA !== timeB) {
+  const validA = Number.isFinite(timeA);
+  const validB = Number.isFinite(timeB);
+  if (validA !== validB) {
+    return validA ? -1 : 1;
+  }
+  if (validA && validB && timeA !== timeB) {
     return timeA - timeB;
   }
   return a.attempt_id.localeCompare(b.attempt_id);
