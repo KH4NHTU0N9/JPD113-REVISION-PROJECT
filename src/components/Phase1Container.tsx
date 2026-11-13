@@ -85,54 +85,42 @@ export function Phase1Container({
 
   return (
     <div className="space-y-4">
-      <section className="rounded-2xl border border-stone-200 bg-white p-3.5 shadow-xs sm:p-4">
-        <div className="grid gap-2 sm:grid-cols-[1fr_1fr_auto]">
-          <button
-            type="button"
-            onClick={() => setActiveStep('theory')}
-            className={`flex items-center justify-between gap-2 rounded-xl border-2 px-3.5 py-2.5 text-left transition ${
-              activeStep === 'theory'
-                ? 'border-red-600 bg-red-50 text-red-900'
-                : 'border-stone-200 bg-stone-50 text-stone-700 hover:bg-stone-100'
-            }`}
-          >
-            <div className="flex items-center gap-2">
-              <BookOpen className="h-4 w-4 shrink-0 text-red-700" />
-              <div>
-                <p className="text-xs font-extrabold">Bước 1 · Lý thuyết (Part 1·2·3)</p>
-                <p className="text-[11px] opacity-80">Đọc lướt 2–3p trước khi luyện tập</p>
-              </div>
-            </div>
-            <span className="rounded-full bg-white px-2 py-0.5 text-[11px] font-extrabold text-stone-700 shadow-2xs">
-              {theoryDoneCount}/3
-            </span>
-          </button>
+      <section className="rounded-xl border border-stone-200 bg-white p-2.5 shadow-2xs sm:px-3.5 sm:py-3">
+        <div className="flex flex-wrap items-center justify-between gap-2">
+          <div className="inline-flex rounded-lg bg-stone-100 p-1">
+            <button
+              type="button"
+              onClick={() => setActiveStep('theory')}
+              className={`flex items-center gap-1.5 rounded-md px-3 py-1.5 text-xs font-extrabold transition ${
+                activeStep === 'theory'
+                  ? 'bg-white text-red-700 shadow-xs'
+                  : 'text-stone-600 hover:text-stone-900'
+              }`}
+            >
+              <BookOpen className="h-3.5 w-3.5 shrink-0" />
+              <span>Bước 1 · Lý thuyết</span>
+              <span className="text-[11px] font-bold opacity-65">{theoryDoneCount}/3</span>
+            </button>
 
-          <button
-            type="button"
-            onClick={() => setActiveStep('games')}
-            className={`flex items-center justify-between gap-2 rounded-xl border-2 px-3.5 py-2.5 text-left transition ${
-              activeStep === 'games'
-                ? 'border-red-600 bg-red-50 text-red-900'
-                : 'border-stone-200 bg-stone-50 text-stone-700 hover:bg-stone-100'
-            }`}
-          >
-            <div className="flex items-center gap-2">
-              <Gamepad2 className="h-4 w-4 shrink-0 text-red-700" />
-              <div>
-                <p className="text-xs font-extrabold">Bước 2 · Luyện tập 4 chặng</p>
-                <p className="text-[11px] opacity-80">Gỡ bẫy · Ghép · Xếp câu · Soi Bug</p>
-              </div>
-            </div>
-            <span className="rounded-full bg-white px-2 py-0.5 text-[11px] font-extrabold text-stone-700 shadow-2xs">
-              {gamesDoneCount}/4
-            </span>
-          </button>
+            <button
+              type="button"
+              onClick={() => setActiveStep('games')}
+              className={`flex items-center gap-1.5 rounded-md px-3 py-1.5 text-xs font-extrabold transition ${
+                activeStep === 'games'
+                  ? 'bg-white text-red-700 shadow-xs'
+                  : 'text-stone-600 hover:text-stone-900'
+              }`}
+            >
+              <Gamepad2 className="h-3.5 w-3.5 shrink-0" />
+              <span>Bước 2 · Luyện tập</span>
+              <span className="text-[11px] font-bold opacity-65">{gamesDoneCount}/4</span>
+            </button>
+          </div>
 
           <button
             type="button"
             onClick={onGoToPhase2}
-            className="flex items-center justify-center gap-1.5 rounded-xl bg-stone-900 px-4 py-2.5 text-xs font-extrabold text-white transition hover:bg-stone-800"
+            className="flex items-center gap-1.5 rounded-lg bg-red-700 px-3.5 py-2 text-xs font-extrabold text-white transition hover:bg-red-800"
           >
             <span>Bước 3 · Quiz 20 câu</span>
             <ArrowRight className="h-3.5 w-3.5" />
@@ -140,11 +128,11 @@ export function Phase1Container({
         </div>
 
         {activeStep === 'theory' ? (
-          <div className="mt-3 grid grid-cols-1 gap-2 sm:grid-cols-3">
+          <div className="mt-2.5 grid grid-cols-1 gap-1.5 border-t border-stone-100 pt-2.5 sm:grid-cols-3">
             {[
               {
                 id: 'part1' as const,
-                label: 'Part 1 · Từ vựng & 5 Mẫu câu',
+                label: 'Part 1 · Từ vựng & Mẫu câu',
                 done: progress.part1Completed,
               },
               {
@@ -154,7 +142,7 @@ export function Phase1Container({
               },
               {
                 id: 'part3' as const,
-                label: 'Part 3 · Sở thích & Jikoshoukai',
+                label: 'Part 3 · Sở thích & Giới thiệu',
                 done: progress.part3Completed,
               },
             ].map((tab) => (
@@ -162,20 +150,20 @@ export function Phase1Container({
                 key={tab.id}
                 type="button"
                 onClick={() => setTheoryTab(tab.id)}
-                className={`flex items-center justify-center gap-1.5 rounded-xl border px-3 py-2 text-xs font-bold transition ${
+                className={`flex items-center justify-center gap-1.5 rounded-lg border px-2.5 py-1.5 text-xs font-bold transition ${
                   theoryTab === tab.id
-                    ? 'border-stone-900 bg-stone-900 text-white'
-                    : 'border-stone-200 bg-stone-50 text-stone-600 hover:bg-stone-100'
+                    ? 'border-red-200 bg-red-50 text-red-800'
+                    : 'border-transparent bg-stone-50 text-stone-600 hover:bg-stone-100'
                 }`}
               >
-                {tab.done && <CheckCircle2 className="h-3.5 w-3.5 shrink-0 text-emerald-500" />}
+                {tab.done && <CheckCircle2 className="h-3.5 w-3.5 shrink-0 text-emerald-600" />}
                 <span>{tab.label}</span>
               </button>
             ))}
           </div>
         ) : (
-          <div className="mt-3 flex flex-col gap-2 sm:flex-row sm:items-center sm:justify-between">
-            <div className="grid flex-1 grid-cols-2 gap-2 sm:grid-cols-4">
+          <div className="mt-2.5 flex flex-col gap-2 border-t border-stone-100 pt-2.5 sm:flex-row sm:items-center sm:justify-between">
+            <div className="grid flex-1 grid-cols-2 gap-1.5 sm:grid-cols-4">
               {GAME_STAGES.map((stage) => {
                 const Icon = stage.icon;
                 const isActive = activeStage === stage.id;
@@ -186,16 +174,16 @@ export function Phase1Container({
                     key={stage.id}
                     type="button"
                     onClick={() => setActiveStage(stage.id)}
-                    className={`flex items-center justify-center gap-1.5 rounded-xl border px-2.5 py-2 text-xs font-extrabold transition ${
+                    className={`flex items-center justify-center gap-1.5 rounded-lg border px-2.5 py-1.5 text-xs font-bold transition ${
                       isActive
-                        ? 'border-stone-900 bg-stone-900 text-white'
+                        ? 'border-red-200 bg-red-50 text-red-800'
                         : isDone
-                          ? 'border-emerald-200 bg-emerald-50/70 text-emerald-800 hover:bg-emerald-50'
-                          : 'border-stone-200 bg-stone-50 text-stone-600 hover:bg-stone-100'
+                          ? 'border-emerald-200 bg-emerald-50/60 text-emerald-800 hover:bg-emerald-50'
+                          : 'border-transparent bg-stone-50 text-stone-600 hover:bg-stone-100'
                     }`}
                   >
                     {isDone ? (
-                      <CheckCircle2 className="h-3.5 w-3.5 shrink-0 text-emerald-500" />
+                      <CheckCircle2 className="h-3.5 w-3.5 shrink-0 text-emerald-600" />
                     ) : (
                       <Icon className="h-3.5 w-3.5 shrink-0" />
                     )}
@@ -208,17 +196,17 @@ export function Phase1Container({
             <button
               type="button"
               onClick={() => openQuickSheet(currentStageMeta.hintTab)}
-              className="flex shrink-0 items-center justify-center gap-1.5 rounded-xl border border-amber-300 bg-amber-50 px-3 py-2 text-xs font-extrabold text-amber-900 transition hover:bg-amber-100"
+              className="flex shrink-0 items-center justify-center gap-1.5 rounded-lg border border-stone-200 bg-white px-2.5 py-1.5 text-xs font-bold text-stone-700 transition hover:bg-stone-50"
             >
               <Lightbulb className="h-3.5 w-3.5 text-amber-600" />
-              <span>Xem nhanh lý thuyết</span>
+              <span>Lý thuyết nhanh</span>
             </button>
           </div>
         )}
       </section>
 
       {/* Step 1: Full Theory View (kept mounted to preserve filter & Jikoshoukai state) */}
-      <div className={activeStep === 'theory' ? 'space-y-5' : 'hidden'}>
+      <div className={activeStep === 'theory' ? 'space-y-4' : 'hidden'}>
         <div className={theoryTab === 'part1' ? 'block' : 'hidden'}>
           <Part1ReviewTab
             displayMode={displayMode}
