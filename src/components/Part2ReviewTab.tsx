@@ -31,27 +31,19 @@ export function Part2ReviewTab({
     : MONTH_READINGS;
 
   return (
-    <div className="space-y-5">
-      <div className="flex flex-wrap items-center justify-between gap-2 rounded-2xl border border-amber-200 bg-amber-50/70 p-3.5">
-        <div>
-          <h2 className="text-sm font-extrabold text-stone-900">
-            Part 2 · Quy tắc đếm Tuổi, Ngày (1–31) & 12 Tháng
-          </h2>
-          <p className="text-xs text-stone-600">
-            Đã bổ sung đủ ngày 17, 19, 27, 29 (bị sót ở bảng PDF Trang 9) và sửa công thức ngày đặc biệt không gắn にち.
-          </p>
-        </div>
+    <div className="space-y-4">
+      <div className="flex justify-end">
         <button
           type="button"
           onClick={() => setTrapOnly((prev) => !prev)}
-          className={`flex items-center gap-1.5 rounded-lg border px-3 py-1.5 text-xs font-bold transition ${
+          className={`flex items-center gap-1.5 rounded-lg border px-2.5 py-1.5 text-xs font-bold transition ${
             trapOnly
-              ? 'border-red-400 bg-red-700 text-white'
+              ? 'border-red-300 bg-red-50 text-red-800'
               : 'border-stone-200 bg-white text-stone-700 hover:bg-stone-50'
           }`}
         >
           <Filter className="h-3.5 w-3.5" />
-          {trapOnly ? 'Đang lọc: Chỉ Bẫy biến âm' : 'Đang hiện: Đầy đủ 100%'}
+          {trapOnly ? 'Đang lọc: Bẫy biến âm' : 'Chỉ xem Bẫy biến âm'}
         </button>
       </div>
 
@@ -200,20 +192,17 @@ export function Part2ReviewTab({
         </div>
       </section>
 
-      <div className="flex flex-wrap items-center justify-between gap-3 rounded-2xl border border-stone-200 bg-white p-4 shadow-xs">
-        <p className="text-xs text-stone-600">
-          Mẹo: Nhớ kỹ 3 tháng (4/7/9), tuổi 20 (はたち) và ngày 4 (よっか) vs 8 (ようか).
-        </p>
+      <div className="flex justify-end">
         <button
           type="button"
           onClick={onComplete}
           className={`flex items-center gap-1.5 rounded-xl px-4 py-2 text-xs font-extrabold transition ${
             isCompleted
-              ? 'bg-emerald-100 text-emerald-800'
+              ? 'bg-emerald-100 text-emerald-800 hover:bg-emerald-200'
               : 'bg-red-700 text-white hover:bg-red-800'
           }`}
         >
-          <span>{isCompleted ? 'Đã xem Part 2 · Sang Part 3' : 'Xong lý thuyết Part 2 → Part 3'}</span>
+          <span>{isCompleted ? 'Sang Part 3' : 'Tiếp tục: Part 3'}</span>
           <ArrowRight className="h-4 w-4" />
         </button>
       </div>
