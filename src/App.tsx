@@ -172,6 +172,15 @@ export default function App() {
     }));
   };
 
+  const handleCompletePart = (part: 'part1' | 'part2' | 'part3') => {
+    updateProgress((prev) => ({
+      ...prev,
+      part1Completed: part === 'part1' ? true : prev.part1Completed,
+      part2Completed: part === 'part2' ? true : prev.part2Completed,
+      part3Completed: part === 'part3' ? true : prev.part3Completed,
+    }));
+  };
+
   const handleAwardGameProgress = (
     deltaXp: number,
     combo: number,
@@ -186,9 +195,6 @@ export default function App() {
       return {
         ...prev,
         completedGames: nextGames,
-        part1Completed: prev.part1Completed || completedGame === 'tinder',
-        part2Completed: prev.part2Completed || completedGame === 'match',
-        part3Completed: prev.part3Completed || completedGame === 'bug',
         phase1Xp: prev.phase1Xp + Math.max(0, deltaXp),
         phase1BestCombo: Math.max(prev.phase1BestCombo, combo),
       };
@@ -223,6 +229,7 @@ export default function App() {
           <Phase1Container
             progress={progress}
             displayMode={progress.displayMode}
+            onCompletePart={handleCompletePart}
             onAwardGameProgress={handleAwardGameProgress}
             onRecordWeakNote={handleRecordWeakNote}
             onGoToPhase2={() => handleRouteChange('phase2')}

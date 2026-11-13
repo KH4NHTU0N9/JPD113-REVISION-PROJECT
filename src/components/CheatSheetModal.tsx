@@ -26,10 +26,11 @@ import { SIX_GOLDEN_TRAPS } from '../data/phase1Games';
 import { buildJikoshoukaiLines } from '../lib/japaneseFormatters';
 import type { DisplayMode, VocabItem } from '../types/lesson';
 
-type SheetTab = 'part1' | 'part2' | 'part3' | 'traps';
+export type SheetTab = 'part1' | 'part2' | 'part3' | 'traps';
 
 interface CheatSheetModalProps {
   open: boolean;
+  initialTab?: SheetTab;
   onClose: () => void;
   displayMode: DisplayMode;
   weakNotes: string[];
@@ -89,11 +90,12 @@ function VocabSection({
 
 export function CheatSheetModal({
   open,
+  initialTab = 'part1',
   onClose,
   displayMode,
   weakNotes,
 }: CheatSheetModalProps) {
-  const [tab, setTab] = useState<SheetTab>('part1');
+  const [tab, setTab] = useState<SheetTab>(initialTab);
   const [trapOnly, setTrapOnly] = useState(false);
 
   // Jikoshoukai sandbox inside Part 3 lookup tab
@@ -128,6 +130,12 @@ export function CheatSheetModal({
       }),
     [age, birthDay, birthMonth, name, selectedCountry, selectedHobby]
   );
+
+  useEffect(() => {
+    if (open) {
+      setTab(initialTab);
+    }
+  }, [initialTab, open]);
 
   useEffect(() => {
     if (!open) return;
