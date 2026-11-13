@@ -27,38 +27,50 @@ export function SentenceTilesGame({
   const [pools] = useState<SentenceTileToken[][]>(() =>
     SENTENCE_TILE_PUZZLES.map((p) => shuffleItems(p.tokens))
   );
-  const [selectedIds, setSelectedIds] = useState<string[]>([]);
-  const [evaluation, setEvaluation] = useState<TileEvaluationResult | null>(null);
+  const [selectedByPuzzle, setSelectedByPuzzle] = useState<Record<string, string[]>>({});
+  const [evaluationByPuzzle, setEvaluationByPuzzle] = useState<
+    Record<string, TileEvaluationResult | null>
+  >({});
   const [solvedIds, setSolvedIds] = useState<string[]>([]);
 
   const currentPuzzle = SENTENCE_TILE_PUZZLES[puzzleIdx];
   const currentPool = pools[puzzleIdx];
   const tokenById = new Map(currentPuzzle.tokens.map((t) => [t.id, t]));
+  const selectedIds = selectedByPuzzle[currentPuzzle.id] ?? [];
+  const evaluation = evaluationByPuzzle[currentPuzzle.id] ?? null;
 
   const isCurrentSolved = solvedIds.includes(currentPuzzle.id);
   const allSolved = solvedIds.length === SENTENCE_TILE_PUZZLES.length;
 
   const switchPuzzle = (nextIdx: number) => {
     setPuzzleIdx(nextIdx);
-    setSelectedIds([]);
-    setEvaluation(null);
   };
 
   const handleAddTile = (id: string) => {
+    const puzzleId = currentPuzzle.id;
     if (selectedIds.includes(id) || (evaluation?.isCorrect ?? false)) return;
-    setSelectedIds((prev) => [...prev, id]);
-    setEvaluation(null);
+    setSelectedByPuzzle((prev) => {
+      const current = prev[puzzleId] ?? [];
+      if (current.includes(id)) return prev;
+      return { ...prev, [puzzleId]: [...current, id] };
+    });
+    setEvaluationByPuzzle((prev) => ({ ...prev, [puzzleId]: null }));
   };
 
   const handleRemoveTile = (id: string) => {
     if (evaluation?.isCorrect) return;
-    setSelectedIds((prev) => prev.filter((item) => item !== id));
-    setEvaluation(null);
+    const puzzleId = currentPuzzle.id;
+    setSelectedByPuzzle((prev) => ({
+      ...prev,
+      [puzzleId]: (prev[puzzleId] ?? []).filter((item) => item !== id),
+    }));
+    setEvaluationByPuzzle((prev) => ({ ...prev, [puzzleId]: null }));
   };
 
   const handleCheck = () => {
+    const puzzleId = currentPuzzle.id;
     const result = evaluateSentenceTiles(currentPuzzle, selectedIds);
-    setEvaluation(result);
+    setEvaluationByPuzzle((prev) => ({ ...prev, [puzzleId]: result }));
 
     if (result.isCorrect) {
       if (!isCurrentSolved) {
@@ -204,8 +216,9 @@ export function SentenceTilesGame({
         <button
           type="button"
           onClick={() => {
-            setSelectedIds([]);
-            setEvaluation(null);
+            const puzzleId = currentPuzzle.id;
+            setSelectedByPuzzle((prev) => ({ ...prev, [puzzleId]: [] }));
+            setEvaluationByPuzzle((prev) => ({ ...prev, [puzzleId]: null }));
           }}
           className="flex items-center gap-1.5 rounded-xl border border-stone-200 bg-stone-50 px-3.5 py-2 text-xs font-bold text-stone-700 hover:bg-stone-100"
         >
