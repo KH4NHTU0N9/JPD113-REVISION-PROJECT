@@ -44,18 +44,25 @@ export default function App() {
   );
 
   const [remainingSeconds, setRemainingSeconds] = useState<number>(() => {
-    const saved = loadReviewProgress();
-    if (!saved.timerStartedAtMs) return SEVEN_MINUTES_SECONDS;
-    const elapsed = Math.floor((Date.now() - saved.timerStartedAtMs) / 1000);
-    return Math.max(0, SEVEN_MINUTES_SECONDS - elapsed);
+    if (progress.timerStartedAtMs !== null) {
+      const elapsed = Math.floor((Date.now() - progress.timerStartedAtMs) / 1000);
+      return Math.max(0, SEVEN_MINUTES_SECONDS - elapsed);
+    }
+    if (progress.pausedRemainingSeconds !== null) {
+      return Math.max(0, Math.min(SEVEN_MINUTES_SECONDS, progress.pausedRemainingSeconds));
+    }
+    return SEVEN_MINUTES_SECONDS;
   });
   const [timerRunning, setTimerRunning] = useState<boolean>(() => {
-    const saved = loadReviewProgress();
-    if (!saved.timerStartedAtMs) return false;
-    const elapsed = Math.floor((Date.now() - saved.timerStartedAtMs) / 1000);
+    if (progress.timerStartedAtMs === null) return false;
+    const elapsed = Math.floor((Date.now() - progress.timerStartedAtMs) / 1000);
     return SEVEN_MINUTES_SECONDS - elapsed > 0;
   });
   const [scoreboardRefreshSignal, setScoreboardRefreshSignal] = useState(0);
+
+  useEffect(() => {
+    saveReviewProgress(progress);
+  }, [progress]);
 
   useEffect(() => {
     const handlePopState = () => {
@@ -66,27 +73,44 @@ export default function App() {
   }, []);
 
   useEffect(() => {
-    if (!timerRunning) return;
-    const id = window.setInterval(() => {
-      setRemainingSeconds((prev) => {
-        if (prev <= 1) {
-          setTimerRunning(false);
-          return 0;
-        }
-        return prev - 1;
-      });
-    }, 1000);
-    return () => window.clearInterval(id);
-  }, [timerRunning]);
+    if (!timerRunning || progress.timerStartedAtMs === null) return;
+    const startedAtMs = progress.timerStartedAtMs;
+
+    const syncCountdown = () => {
+      const elapsed = Math.floor((Date.now() - startedAtMs) / 1000);
+      const nextRemaining = Math.max(0, SEVEN_MINUTES_SECONDS - elapsed);
+      setRemainingSeconds(nextRemaining);
+      if (nextRemaining === 0) {
+        setTimerRunning(false);
+        setProgress((prev) => ({
+          ...prev,
+          timerStartedAtMs: null,
+          pausedRemainingSeconds: 0,
+        }));
+      }
+    };
+
+    syncCountdown();
+    const id = window.setInterval(syncCountdown, 500);
+    const handleVisibility = () => {
+      if (document.visibilityState === 'visible') {
+        syncCountdown();
+      }
+    };
+    document.addEventListener('visibilitychange', handleVisibility);
+    window.addEventListener('focus', syncCountdown);
+
+    return () => {
+      window.clearInterval(id);
+      document.removeEventListener('visibilitychange', handleVisibility);
+      window.removeEventListener('focus', syncCountdown);
+    };
+  }, [timerRunning, progress.timerStartedAtMs]);
 
   const updateProgress = (
     updater: (prev: ReviewProgressState) => ReviewProgressState
   ) => {
-    setProgress((prev) => {
-      const next = updater(prev);
-      saveReviewProgress(next);
-      return next;
-    });
+    setProgress(updater);
   };
 
   const handleRouteChange = (route: ActiveRoute) => {
@@ -107,22 +131,46 @@ export default function App() {
       handleResetTimer();
       return;
     }
-    setTimerRunning((prev) => {
-      const nextRunning = !prev;
-      updateProgress((p) => ({
+    if (timerRunning) {
+      const currentRemaining =
+        progress.timerStartedAtMs !== null
+          ? Math.max(
+              0,
+              SEVEN_MINUTES_SECONDS -
+                Math.floor((Date.now() - progress.timerStartedAtMs) / 1000)
+            )
+          : remainingSeconds;
+      setTimerRunning(false);
+      setRemainingSeconds(currentRemaining);
+      setProgress((p) => ({
         ...p,
-        timerStartedAtMs: nextRunning
-          ? Date.now() - (SEVEN_MINUTES_SECONDS - remainingSeconds) * 1000
-          : null,
+        timerStartedAtMs: null,
+        pausedRemainingSeconds: currentRemaining,
       }));
-      return nextRunning;
-    });
+      return;
+    }
+
+    const resumeRemaining =
+      progress.pausedRemainingSeconds ?? remainingSeconds;
+    const resumedStartAt =
+      Date.now() - (SEVEN_MINUTES_SECONDS - resumeRemaining) * 1000;
+    setTimerRunning(true);
+    setProgress((p) => ({
+      ...p,
+      timerStartedAtMs: resumedStartAt,
+      pausedRemainingSeconds: null,
+    }));
   };
 
   const handleResetTimer = () => {
+    const now = Date.now();
     setTimerRunning(true);
     setRemainingSeconds(SEVEN_MINUTES_SECONDS);
-    updateProgress((p) => ({ ...p, timerStartedAtMs: Date.now() }));
+    setProgress((p) => ({
+      ...p,
+      timerStartedAtMs: now,
+      pausedRemainingSeconds: null,
+    }));
   };
 
   const handleCompletePart = (part: 'part1' | 'part2' | 'part3') => {

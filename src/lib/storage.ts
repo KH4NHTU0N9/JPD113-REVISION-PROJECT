@@ -14,6 +14,7 @@ export interface ReviewProgressState {
   weakNotes: string[];
   displayMode: DisplayMode;
   timerStartedAtMs: number | null;
+  pausedRemainingSeconds: number | null;
 }
 
 const DEFAULT_PROGRESS: ReviewProgressState = {
@@ -23,6 +24,7 @@ const DEFAULT_PROGRESS: ReviewProgressState = {
   weakNotes: [],
   displayMode: 'full',
   timerStartedAtMs: null,
+  pausedRemainingSeconds: null,
 };
 
 function safeReadJson<T>(key: string, fallback: T): T {
@@ -106,12 +108,4 @@ export function appendLocalDemoScoreboard(entry: ScoreboardEntry): ScoreboardEnt
   const updated = [...existing, entry];
   safeWriteJson('demo_scoreboard', updated);
   return updated;
-}
-
-export function clearLocalDemoScoreboard(): void {
-  try {
-    window.localStorage.removeItem(`${STORAGE_PREFIX}demo_scoreboard`);
-  } catch {
-    // Ignore
-  }
 }
