@@ -20,6 +20,55 @@ const DISPLAY_MODES: { value: DisplayMode; label: string }[] = [
   { value: 'challenge', label: 'Thử thách' },
 ];
 
+function TimerControls({
+  mins,
+  secs,
+  isTimeUp,
+  timerRunning,
+  onToggleTimer,
+  onResetTimer,
+}: {
+  mins: number;
+  secs: number;
+  isTimeUp: boolean;
+  timerRunning: boolean;
+  onToggleTimer: () => void;
+  onResetTimer: () => void;
+}) {
+  return (
+    <div className="flex items-center gap-1">
+      <button
+        type="button"
+        onClick={onToggleTimer}
+        title="Bấm để bật/tạm dừng đồng hồ 7 phút"
+        className={`tabular-nums flex items-center gap-1 rounded-lg border px-2 py-1 text-xs font-bold whitespace-nowrap transition sm:gap-1.5 sm:px-2.5 ${
+          isTimeUp
+            ? 'animate-pulse border-red-300 bg-red-50 text-red-700'
+            : timerRunning
+              ? 'border-amber-300 bg-amber-50 text-amber-800'
+              : 'border-stone-200 bg-stone-50 text-stone-700'
+        }`}
+      >
+        <Clock className="h-3.5 w-3.5" />
+        <span>
+          {isTimeUp
+            ? 'Hết 7p'
+            : `${String(mins).padStart(2, '0')}:${String(secs).padStart(2, '0')}`}
+        </span>
+      </button>
+      <button
+        type="button"
+        onClick={onResetTimer}
+        title="Đặt lại đồng hồ 7 phút"
+        aria-label="Đặt lại đồng hồ 7 phút"
+        className="rounded-lg border border-stone-200 p-1.5 text-stone-500 hover:bg-stone-100 hover:text-stone-800"
+      >
+        <RotateCcw className="h-3.5 w-3.5" />
+      </button>
+    </div>
+  );
+}
+
 export function HeaderBar({
   activeRoute,
   onRouteChange,
@@ -36,7 +85,7 @@ export function HeaderBar({
 
   return (
     <header className="sticky top-0 z-30 border-b border-stone-200 bg-white/95 backdrop-blur">
-      <div className="mx-auto flex max-w-5xl flex-col gap-2.5 px-4 py-2.5 sm:flex-row sm:items-center sm:justify-between">
+      <div className="mx-auto flex max-w-5xl flex-col gap-2 px-4 py-2 sm:flex-row sm:items-center sm:justify-between sm:py-2.5">
         <div className="flex items-center justify-between gap-2.5">
           <div className="flex items-center gap-2.5">
             <div
@@ -45,25 +94,20 @@ export function HeaderBar({
             >
               日
             </div>
-            <h1 className="text-base font-extrabold tracking-tight text-stone-900">
+            <h1 className="text-base font-extrabold tracking-tight text-stone-900 whitespace-nowrap">
               JPD113 · Bài 1
             </h1>
           </div>
 
-          <div className="flex items-center gap-1.5 sm:hidden">
-            <button
-              type="button"
-              onClick={onToggleTimer}
-              title="Bấm để bật/tạm dừng đồng hồ 7 phút"
-              className={`tabular-nums flex items-center gap-1 rounded-lg border px-2.5 py-1 text-xs font-bold ${
-                isTimeUp
-                  ? 'border-red-300 bg-red-50 text-red-700'
-                  : 'border-stone-200 bg-stone-50 text-stone-700'
-              }`}
-            >
-              <Clock className="h-3.5 w-3.5" />
-              {String(mins).padStart(2, '0')}:{String(secs).padStart(2, '0')}
-            </button>
+          <div className="sm:hidden">
+            <TimerControls
+              mins={mins}
+              secs={secs}
+              isTimeUp={isTimeUp}
+              timerRunning={timerRunning}
+              onToggleTimer={onToggleTimer}
+              onResetTimer={onResetTimer}
+            />
           </div>
         </div>
 
@@ -72,69 +116,51 @@ export function HeaderBar({
             <button
               type="button"
               onClick={() => onRouteChange('phase1')}
-              className={`flex items-center gap-1.5 rounded-md px-2.5 py-1.5 text-xs font-bold transition ${
+              className={`flex items-center gap-1 rounded-md px-2 py-1.5 text-xs font-bold whitespace-nowrap transition sm:gap-1.5 sm:px-2.5 ${
                 activeRoute === 'phase1'
                   ? 'bg-white text-red-700 shadow-xs'
                   : 'text-stone-600 hover:text-stone-900'
               }`}
             >
-              <BookOpen className="h-3.5 w-3.5" />
+              <BookOpen className="h-3.5 w-3.5 shrink-0" />
               <span>Ôn tập</span>
             </button>
             <button
               type="button"
               onClick={() => onRouteChange('phase2')}
-              className={`flex items-center gap-1.5 rounded-md px-2.5 py-1.5 text-xs font-bold transition ${
+              className={`flex items-center gap-1 rounded-md px-2 py-1.5 text-xs font-bold whitespace-nowrap transition sm:gap-1.5 sm:px-2.5 ${
                 activeRoute === 'phase2'
                   ? 'bg-white text-red-700 shadow-xs'
                   : 'text-stone-600 hover:text-stone-900'
               }`}
             >
-              <Zap className="h-3.5 w-3.5" />
+              <Zap className="h-3.5 w-3.5 shrink-0" />
               <span>Quiz 20 câu</span>
             </button>
             <button
               type="button"
               onClick={() => onRouteChange('scoreboard')}
-              className={`flex items-center gap-1.5 rounded-md px-2.5 py-1.5 text-xs font-bold transition ${
+              className={`flex items-center gap-1 rounded-md px-2 py-1.5 text-xs font-bold whitespace-nowrap transition sm:gap-1.5 sm:px-2.5 ${
                 activeRoute === 'scoreboard'
                   ? 'bg-white text-red-700 shadow-xs'
                   : 'text-stone-600 hover:text-stone-900'
               }`}
             >
-              <Trophy className="h-3.5 w-3.5" />
+              <Trophy className="h-3.5 w-3.5 shrink-0" />
               <span>Scoreboard</span>
             </button>
           </nav>
 
           <div className="flex items-center gap-2">
-            <div className="hidden items-center gap-1 sm:flex">
-              <button
-                type="button"
-                onClick={onToggleTimer}
-                className={`tabular-nums flex items-center gap-1.5 rounded-lg border px-2.5 py-1 text-xs font-bold transition ${
-                  isTimeUp
-                    ? 'animate-pulse border-red-300 bg-red-50 text-red-700'
-                    : timerRunning
-                      ? 'border-amber-300 bg-amber-50 text-amber-800'
-                      : 'border-stone-200 bg-stone-50 text-stone-700'
-                }`}
-              >
-                <Clock className="h-3.5 w-3.5" />
-                <span>
-                  {isTimeUp
-                    ? 'Hết 7p'
-                    : `${String(mins).padStart(2, '0')}:${String(secs).padStart(2, '0')}`}
-                </span>
-              </button>
-              <button
-                type="button"
-                onClick={onResetTimer}
-                title="Đặt lại đồng hồ 7 phút"
-                className="rounded-lg border border-stone-200 p-1.5 text-stone-500 hover:bg-stone-100 hover:text-stone-800"
-              >
-                <RotateCcw className="h-3.5 w-3.5" />
-              </button>
+            <div className="hidden sm:flex">
+              <TimerControls
+                mins={mins}
+                secs={secs}
+                isTimeUp={isTimeUp}
+                timerRunning={timerRunning}
+                onToggleTimer={onToggleTimer}
+                onResetTimer={onResetTimer}
+              />
             </div>
 
             {activeRoute === 'phase1' && (

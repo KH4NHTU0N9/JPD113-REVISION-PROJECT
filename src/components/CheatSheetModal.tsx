@@ -457,13 +457,13 @@ export function CheatSheetModal({
                     value={name}
                     onChange={(e) => setName(e.target.value)}
                     aria-label="Tên"
-                    className="rounded-lg border border-stone-300 px-2 py-1 font-semibold"
+                    className="rounded-lg border border-stone-300 px-2 py-1 text-base font-semibold sm:text-xs"
                   />
                   <select
                     value={countryId}
                     onChange={(e) => setCountryId(e.target.value)}
                     aria-label="Quốc tịch"
-                    className="rounded-lg border border-stone-300 px-2 py-1 font-semibold"
+                    className="rounded-lg border border-stone-300 px-2 py-1 text-base font-semibold sm:text-xs"
                   >
                     {COUNTRIES.map((c) => (
                       <option key={c.id} value={c.id}>
@@ -479,13 +479,13 @@ export function CheatSheetModal({
                     onChange={(e) => setAgeInput(e.target.value)}
                     onBlur={() => setAgeInput(String(age))}
                     aria-label="Tuổi"
-                    className="rounded-lg border border-stone-300 px-2 py-1 font-semibold"
+                    className="rounded-lg border border-stone-300 px-2 py-1 text-base font-semibold sm:text-xs"
                   />
                   <select
                     value={birthMonth}
                     onChange={(e) => setBirthMonth(Number(e.target.value))}
                     aria-label="Tháng sinh"
-                    className="rounded-lg border border-stone-300 px-2 py-1 font-semibold"
+                    className="rounded-lg border border-stone-300 px-2 py-1 text-base font-semibold sm:text-xs"
                   >
                     {Array.from({ length: 12 }, (_, i) => i + 1).map((m) => (
                       <option key={m} value={m}>
@@ -497,7 +497,7 @@ export function CheatSheetModal({
                     value={birthDay}
                     onChange={(e) => setBirthDay(Number(e.target.value))}
                     aria-label="Ngày sinh"
-                    className="rounded-lg border border-stone-300 px-2 py-1 font-semibold"
+                    className="rounded-lg border border-stone-300 px-2 py-1 text-base font-semibold sm:text-xs"
                   >
                     {Array.from({ length: 31 }, (_, i) => i + 1).map((d) => (
                       <option key={d} value={d}>
@@ -511,7 +511,8 @@ export function CheatSheetModal({
                   <select
                     value={hobby1Id}
                     onChange={(e) => setHobby1Id(e.target.value)}
-                    className="rounded-lg border border-stone-300 px-2 py-1 font-semibold"
+                    aria-label="Sở thích"
+                    className="rounded-lg border border-stone-300 px-2 py-1 text-base font-semibold sm:text-xs"
                   >
                     {HOBBY_CHOICES.map((h) => (
                       <option key={h.id} value={h.id}>
