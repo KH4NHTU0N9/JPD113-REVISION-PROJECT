@@ -17,7 +17,6 @@ import {
   saveReviewProgress,
   type ReviewProgressState,
 } from './lib/storage';
-import { isSupabaseConfigured } from './lib/env';
 import type { DisplayMode } from './types/lesson';
 
 const SEVEN_MINUTES_SECONDS = 7 * 60;
@@ -203,7 +202,6 @@ export default function App() {
         timerRunning={timerRunning}
         onToggleTimer={handleToggleTimer}
         onResetTimer={handleResetTimer}
-        isLiveBackend={isSupabaseConfigured}
       />
 
       <main className="mx-auto max-w-5xl px-4 py-6">

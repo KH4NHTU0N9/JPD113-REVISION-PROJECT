@@ -12,7 +12,6 @@ interface HeaderBarProps {
   timerRunning: boolean;
   onToggleTimer: () => void;
   onResetTimer: () => void;
-  isLiveBackend: boolean;
 }
 
 const DISPLAY_MODES: { value: DisplayMode; label: string }[] = [
@@ -30,7 +29,6 @@ export function HeaderBar({
   timerRunning,
   onToggleTimer,
   onResetTimer,
-  isLiveBackend,
 }: HeaderBarProps) {
   const mins = Math.floor(remainingSeconds / 60);
   const secs = remainingSeconds % 60;
@@ -47,25 +45,9 @@ export function HeaderBar({
             >
               日
             </div>
-            <div>
-              <div className="flex items-center gap-2">
-                <h1 className="text-base font-extrabold tracking-tight text-stone-900 sm:text-lg">
-                  JPD113 · Bài 1
-                </h1>
-                <span
-                  className={`rounded-full px-2 py-0.5 text-[11px] font-semibold ${
-                    isLiveBackend
-                      ? 'bg-emerald-100 text-emerald-800'
-                      : 'bg-amber-100 text-amber-800'
-                  }`}
-                >
-                  {isLiveBackend ? 'Live Scoreboard' : 'Demo Local'}
-                </span>
-              </div>
-              <p className="text-xs text-stone-500">
-                Ôn tập 7 phút → Quiz 20 câu → Scoreboard trao thưởng
-              </p>
-            </div>
+            <h1 className="text-base font-extrabold tracking-tight text-stone-900 sm:text-lg">
+              JPD113 · Bài 1
+            </h1>
           </div>
 
           <div className="flex items-center gap-1.5 sm:hidden">
