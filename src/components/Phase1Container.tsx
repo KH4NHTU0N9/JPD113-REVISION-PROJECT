@@ -21,6 +21,7 @@ import { BugHunterGame } from './games/BugHunterGame';
 import { SentenceTilesGame } from './games/SentenceTilesGame';
 import { SpeedMatchGame } from './games/SpeedMatchGame';
 import { TrapSwipeGame } from './games/TrapSwipeGame';
+import { ChunkErrorBoundary } from './ChunkErrorBoundary';
 
 const CheatSheetModal = lazy(() =>
   import('./CheatSheetModal').then((m) => ({ default: m.CheatSheetModal }))
@@ -87,7 +88,7 @@ export function Phase1Container({
     <div className="space-y-4">
       <section className="rounded-xl border border-stone-200 bg-white p-2.5 shadow-2xs sm:px-3.5 sm:py-3">
         <div className="flex flex-wrap items-center justify-between gap-2">
-          <div className="inline-flex rounded-lg bg-stone-100 p-1">
+          <div className="inline-flex flex-wrap gap-1 rounded-lg bg-stone-100 p-1">
             <button
               type="button"
               onClick={() => setActiveStep('theory')}
@@ -286,6 +287,7 @@ export function Phase1Container({
           <SpeedMatchGame
             displayMode={displayMode}
             isCompleted={progress.completedGames.includes('match')}
+            isActive={activeStep === 'games' && activeStage === 'match'}
             onComplete={() => onCompleteGame('match')}
             onRecordWeakNote={onRecordWeakNote}
             onNextStage={() => setActiveStage('tiles')}
@@ -333,15 +335,17 @@ export function Phase1Container({
       </div>
 
       {cheatSheetOpen && (
-        <Suspense fallback={null}>
-          <CheatSheetModal
-            open={cheatSheetOpen}
-            initialTab={cheatSheetTab}
-            onClose={() => setCheatSheetOpen(false)}
-            displayMode={displayMode}
-            weakNotes={progress.weakNotes}
-          />
-        </Suspense>
+        <ChunkErrorBoundary fallbackTitle="Không tải được bảng Lý thuyết nhanh">
+          <Suspense fallback={null}>
+            <CheatSheetModal
+              open={cheatSheetOpen}
+              initialTab={cheatSheetTab}
+              onClose={() => setCheatSheetOpen(false)}
+              displayMode={displayMode}
+              weakNotes={progress.weakNotes}
+            />
+          </Suspense>
+        </ChunkErrorBoundary>
       )}
     </div>
   );

@@ -1,4 +1,4 @@
-import { useEffect, useState } from 'react';
+import { useEffect, useRef, useState } from 'react';
 import { ArrowRight, Check, CheckCircle2, RotateCcw, Timer } from 'lucide-react';
 import { MATCH_ROUNDS } from '../../data/phase1Games';
 import { formatElapsedTenths, shuffleItems } from '../../lib/phase1GameUtils';
@@ -7,6 +7,7 @@ import type { DisplayMode, MatchPairItem } from '../../types/lesson';
 interface SpeedMatchGameProps {
   displayMode: DisplayMode;
   isCompleted: boolean;
+  isActive?: boolean;
   onComplete: () => void;
   onRecordWeakNote: (note: string) => void;
   onNextStage: () => void;
@@ -15,6 +16,7 @@ interface SpeedMatchGameProps {
 export function SpeedMatchGame({
   displayMode,
   isCompleted,
+  isActive = true,
   onComplete,
   onRecordWeakNote,
   onNextStage,
@@ -35,9 +37,11 @@ export function SpeedMatchGame({
   const [wrongPair, setWrongPair] = useState<{ left: string; right: string } | null>(null);
   const [errorHint, setErrorHint] = useState<string | null>(null);
   const [errors, setErrors] = useState(0);
-  const [startedAtMs, setStartedAtMs] = useState<number | null>(null);
+  const [hasStartedRound, setHasStartedRound] = useState(false);
   const [elapsedMs, setElapsedMs] = useState(0);
   const [clearedRoundTimes, setClearedRoundTimes] = useState<Record<string, number>>({});
+  const accumulatedMsRef = useRef(0);
+  const segmentStartRef = useRef<number | null>(null);
 
   const isRoundCleared = matchedIds.length === currentRound.pairs.length;
 
@@ -52,17 +56,29 @@ export function SpeedMatchGame({
     setWrongPair(null);
     setErrorHint(null);
     setErrors(0);
-    setStartedAtMs(null);
+    accumulatedMsRef.current = 0;
+    segmentStartRef.current = null;
+    setHasStartedRound(false);
     setElapsedMs(0);
   };
 
   useEffect(() => {
-    if (startedAtMs === null || isRoundCleared) return;
+    if (!isActive || !hasStartedRound || isRoundCleared) return;
+    const segmentStart = Date.now();
+    segmentStartRef.current = segmentStart;
+
     const timer = window.setInterval(() => {
-      setElapsedMs(Date.now() - startedAtMs);
+      setElapsedMs(accumulatedMsRef.current + (Date.now() - segmentStart));
     }, 100);
-    return () => window.clearInterval(timer);
-  }, [startedAtMs, isRoundCleared]);
+
+    return () => {
+      window.clearInterval(timer);
+      if (segmentStartRef.current !== null) {
+        accumulatedMsRef.current += Date.now() - segmentStartRef.current;
+        segmentStartRef.current = null;
+      }
+    };
+  }, [isActive, hasStartedRound, isRoundCleared]);
 
   useEffect(() => {
     if (!wrongPair) return;
@@ -80,7 +96,11 @@ export function SpeedMatchGame({
       setErrorHint(null);
 
       if (nextMatched.length === currentRound.pairs.length) {
-        const finalDuration = startedAtMs ? Date.now() - startedAtMs : elapsedMs;
+        const segmentElapsed =
+          segmentStartRef.current !== null ? Date.now() - segmentStartRef.current : 0;
+        const finalDuration = accumulatedMsRef.current + segmentElapsed;
+        accumulatedMsRef.current = finalDuration;
+        segmentStartRef.current = null;
         setElapsedMs(finalDuration);
         const nextTimes = { ...clearedRoundTimes, [currentRound.id]: finalDuration };
         setClearedRoundTimes(nextTimes);
@@ -106,8 +126,8 @@ export function SpeedMatchGame({
   const handleSelectLeft = (id: string) => {
     if (matchedIds.includes(id) || isRoundCleared) return;
     setWrongPair(null);
-    if (startedAtMs === null) {
-      setStartedAtMs(Date.now());
+    if (!hasStartedRound) {
+      setHasStartedRound(true);
     }
     if (selectedRightId) {
       tryMatch(id, selectedRightId);
@@ -119,8 +139,8 @@ export function SpeedMatchGame({
   const handleSelectRight = (id: string) => {
     if (matchedIds.includes(id) || isRoundCleared) return;
     setWrongPair(null);
-    if (startedAtMs === null) {
-      setStartedAtMs(Date.now());
+    if (!hasStartedRound) {
+      setHasStartedRound(true);
     }
     if (selectedLeftId) {
       tryMatch(selectedLeftId, id);
@@ -240,7 +260,7 @@ export function SpeedMatchGame({
                   type="button"
                   disabled={matched}
                   onClick={() => handleSelectLeft(item.id)}
-                  className={`flex min-h-[60px] w-full flex-col justify-center rounded-xl border-2 px-3 py-2 text-left transition ${
+                  className={`flex min-h-[60px] w-full flex-col justify-center rounded-xl border-2 px-2.5 py-2 text-left transition sm:px-3 ${
                     matched
                       ? 'pointer-events-none border-emerald-200 bg-emerald-50/40 opacity-20'
                       : isWrong
@@ -250,7 +270,7 @@ export function SpeedMatchGame({
                           : 'border-stone-200 bg-stone-50 text-stone-900 hover:border-stone-400 hover:bg-white'
                   }`}
                 >
-                  <span className="font-jp text-xs font-extrabold sm:text-sm">
+                  <span className="font-jp break-words text-xs font-extrabold sm:text-sm">
                     {item.leftText}
                   </span>
                   {displayMode === 'full' && item.leftSub && (
@@ -279,7 +299,7 @@ export function SpeedMatchGame({
                   type="button"
                   disabled={matched}
                   onClick={() => handleSelectRight(item.id)}
-                  className={`flex min-h-[60px] w-full items-center justify-between gap-2 rounded-xl border-2 px-3 py-2 text-left transition ${
+                  className={`flex min-h-[60px] w-full items-center justify-between gap-2 rounded-xl border-2 px-2.5 py-2 text-left transition sm:px-3 ${
                     matched
                       ? 'pointer-events-none border-emerald-200 bg-emerald-50/40 opacity-20'
                       : isWrong
@@ -289,7 +309,7 @@ export function SpeedMatchGame({
                           : 'border-stone-200 bg-white text-stone-800 hover:border-red-300'
                   }`}
                 >
-                  <span className="text-xs font-bold sm:text-sm">{item.rightText}</span>
+                  <span className="break-words text-xs font-bold sm:text-sm">{item.rightText}</span>
                 </button>
               );
             })}
