@@ -1,4 +1,4 @@
-import { useCallback, useEffect, useMemo, useState } from 'react';
+import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import {
   Download,
   QrCode,
@@ -10,9 +10,9 @@ import {
 } from 'lucide-react';
 import { QRCodeSVG } from 'qrcode.react';
 import {
+  buildRankedScoreboardView,
   buildScoreboardCsv,
   formatDurationMs,
-  rankScoreboardEntries,
   type RankingFilter,
 } from '../lib/scoreboardUtils';
 import {
@@ -34,22 +34,38 @@ export function ScoreboardView({ refreshSignal }: ScoreboardViewProps) {
   const [errorMsg, setErrorMsg] = useState<string | null>(null);
   const [realtimeStatus, setRealtimeStatus] = useState<string>('CONNECTING');
   const [showQrModal, setShowQrModal] = useState(false);
+  const loadSeqRef = useRef(0);
+  const mountedRef = useRef(true);
+
+  useEffect(() => {
+    mountedRef.current = true;
+    return () => {
+      mountedRef.current = false;
+    };
+  }, []);
 
   const appUrl =
     typeof window !== 'undefined' ? window.location.origin : 'https://vercel.app';
 
-  const loadEntries = useCallback(async () => {
-    setIsLoading(true);
+  const loadEntries = useCallback(async (options?: { silent?: boolean }) => {
+    const seq = ++loadSeqRef.current;
+    if (!options?.silent) {
+      setIsLoading(true);
+    }
     setErrorMsg(null);
     try {
       const data = await fetchScoreboardEntries();
+      if (!mountedRef.current || seq !== loadSeqRef.current) return;
       setEntries(data);
     } catch (err) {
+      if (!mountedRef.current || seq !== loadSeqRef.current) return;
       setErrorMsg(
         err instanceof Error ? err.message : 'Không tải được Scoreboard.'
       );
     } finally {
-      setIsLoading(false);
+      if (mountedRef.current && seq === loadSeqRef.current) {
+        setIsLoading(false);
+      }
     }
   }, []);
 
@@ -67,28 +83,45 @@ export function ScoreboardView({ refreshSignal }: ScoreboardViewProps) {
           return [...prev, newEntry];
         });
       },
-      (status) => setRealtimeStatus(status)
+      (status) => {
+        setRealtimeStatus(status);
+        // Close the initial cold-boot gap and catch any entries submitted during disconnect
+        if (status === 'SUBSCRIBED') {
+          void loadEntries({ silent: true });
+        }
+      }
     );
     return unsubscribe;
-  }, []);
+  }, [loadEntries]);
 
   useEffect(() => {
     if (!isSupabaseConfigured) return;
     const handleResync = () => {
       if (document.visibilityState === 'visible') {
-        void loadEntries();
+        void loadEntries({ silent: true });
       }
     };
     const handleOnline = () => {
-      void loadEntries();
+      void loadEntries({ silent: true });
     };
     document.addEventListener('visibilitychange', handleResync);
     window.addEventListener('online', handleOnline);
+    window.addEventListener('pageshow', handleResync);
+
+    const pollIntervalMs = realtimeStatus === 'SUBSCRIBED' ? 20000 : 5000;
+    const pollTimer = window.setInterval(() => {
+      if (document.visibilityState === 'visible') {
+        void loadEntries({ silent: true });
+      }
+    }, pollIntervalMs);
+
     return () => {
+      window.clearInterval(pollTimer);
       document.removeEventListener('visibilitychange', handleResync);
       window.removeEventListener('online', handleOnline);
+      window.removeEventListener('pageshow', handleResync);
     };
-  }, [loadEntries]);
+  }, [loadEntries, realtimeStatus]);
 
   useEffect(() => {
     if (!showQrModal) return;
@@ -101,21 +134,15 @@ export function ScoreboardView({ refreshSignal }: ScoreboardViewProps) {
     return () => window.removeEventListener('keydown', handleKeyDown);
   }, [showQrModal]);
 
-  const rankedEntries = useMemo(() => {
-    const sorted = rankScoreboardEntries(entries, filterMode);
-    const q = searchQuery.trim().toLowerCase();
-    if (!q) return sorted;
-    return sorted.filter(
-      (item) =>
-        item.student_name.toLowerCase().includes(q) ||
-        item.student_code.toLowerCase().includes(q)
-    );
-  }, [entries, filterMode, searchQuery]);
+  const { allRanked, filteredEntries, rankByAttemptId } = useMemo(
+    () => buildRankedScoreboardView(entries, filterMode, searchQuery),
+    [entries, filterMode, searchQuery]
+  );
 
-  const topThree = rankedEntries.slice(0, 3);
+  const topThree = allRanked.slice(0, 3);
 
   const handleDownloadCsv = () => {
-    const csv = buildScoreboardCsv(rankedEntries);
+    const csv = buildScoreboardCsv(allRanked);
     const blob = new Blob([csv], { type: 'text/csv;charset=utf-8;' });
     const url = URL.createObjectURL(blob);
     const localDate = new Intl.DateTimeFormat('en-CA', {
@@ -173,7 +200,7 @@ export function ScoreboardView({ refreshSignal }: ScoreboardViewProps) {
           </button>
           <button
             type="button"
-            disabled={rankedEntries.length === 0}
+            disabled={allRanked.length === 0}
             onClick={handleDownloadCsv}
             className="flex items-center gap-1.5 rounded-xl border border-stone-200 bg-white px-3 py-2 text-xs font-bold text-stone-700 hover:bg-stone-50 disabled:opacity-40"
           >
@@ -271,9 +298,11 @@ export function ScoreboardView({ refreshSignal }: ScoreboardViewProps) {
           </p>
         )}
 
-        {rankedEntries.length === 0 ? (
+        {filteredEntries.length === 0 ? (
           <div className="rounded-xl bg-stone-50 p-8 text-center text-xs text-stone-500">
-            Chưa có bài nộp nào. Hoàn thành Phase 2 Quiz để xuất hiện trên bảng xếp hạng!
+            {entries.length > 0 && searchQuery.trim()
+              ? 'Không tìm thấy sinh viên khớp từ khóa.'
+              : 'Chưa có bài nộp nào. Hoàn thành Phase 2 Quiz để xuất hiện trên bảng xếp hạng!'}
           </div>
         ) : (
           <div className="overflow-x-auto">
@@ -289,37 +318,40 @@ export function ScoreboardView({ refreshSignal }: ScoreboardViewProps) {
                 </tr>
               </thead>
               <tbody className="divide-y divide-stone-100">
-                {rankedEntries.map((row, index) => (
-                  <tr
-                    key={row.attempt_id}
-                    className={index === 0 ? 'bg-amber-50/70 font-semibold' : ''}
-                  >
-                    <td className="tabular-nums py-2.5 pr-3 font-extrabold text-stone-900">
-                      #{index + 1}
-                    </td>
-                    <td className="py-2.5 pr-3 font-bold text-stone-900">
-                      {row.student_name}
-                    </td>
-                    <td className="py-2.5 pr-3 text-stone-600">{row.student_code}</td>
-                    <td className="py-2.5 pr-3">
-                      <span
-                        className={`rounded-full px-2 py-0.5 text-[10px] font-bold ${
-                          row.attempt_number === 1
-                            ? 'bg-emerald-100 text-emerald-800'
-                            : 'bg-stone-100 text-stone-600'
-                        }`}
-                      >
-                        Lần {row.attempt_number}
-                      </span>
-                    </td>
-                    <td className="tabular-nums py-2.5 pr-3 font-extrabold text-red-700">
-                      {row.score}/{row.total_questions}
-                    </td>
-                    <td className="tabular-nums py-2.5 font-bold text-stone-700">
-                      {formatDurationMs(row.duration_ms)}
-                    </td>
-                  </tr>
-                ))}
+                {filteredEntries.map((row, index) => {
+                  const trueRank = rankByAttemptId.get(row.attempt_id) ?? index + 1;
+                  return (
+                    <tr
+                      key={row.attempt_id}
+                      className={trueRank === 1 ? 'bg-amber-50/70 font-semibold' : ''}
+                    >
+                      <td className="tabular-nums py-2.5 pr-3 font-extrabold text-stone-900">
+                        #{trueRank}
+                      </td>
+                      <td className="py-2.5 pr-3 font-bold text-stone-900">
+                        {row.student_name}
+                      </td>
+                      <td className="py-2.5 pr-3 text-stone-600">{row.student_code}</td>
+                      <td className="py-2.5 pr-3">
+                        <span
+                          className={`rounded-full px-2 py-0.5 text-[10px] font-bold ${
+                            row.attempt_number === 1
+                              ? 'bg-emerald-100 text-emerald-800'
+                              : 'bg-stone-100 text-stone-600'
+                          }`}
+                        >
+                          Lần {row.attempt_number}
+                        </span>
+                      </td>
+                      <td className="tabular-nums py-2.5 pr-3 font-extrabold text-red-700">
+                        {row.score}/{row.total_questions}
+                      </td>
+                      <td className="tabular-nums py-2.5 font-bold text-stone-700">
+                        {formatDurationMs(row.duration_ms)}
+                      </td>
+                    </tr>
+                  );
+                })}
               </tbody>
             </table>
           </div>

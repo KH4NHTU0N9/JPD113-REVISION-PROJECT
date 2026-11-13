@@ -18,10 +18,10 @@ export function compareScoreboardEntries(
   if (a.duration_ms !== b.duration_ms) {
     return a.duration_ms - b.duration_ms;
   }
-  const timeDiff =
-    new Date(a.submitted_at).getTime() - new Date(b.submitted_at).getTime();
-  if (timeDiff !== 0) {
-    return timeDiff;
+  const timeA = new Date(a.submitted_at).getTime();
+  const timeB = new Date(b.submitted_at).getTime();
+  if (Number.isFinite(timeA) && Number.isFinite(timeB) && timeA !== timeB) {
+    return timeA - timeB;
   }
   return a.attempt_id.localeCompare(b.attempt_id);
 }
@@ -36,6 +36,37 @@ export function rankScoreboardEntries(
       : entries;
 
   return [...filtered].sort(compareScoreboardEntries);
+}
+
+/**
+ * Computes full-class ranked entries and preserves true class rank (#1..N)
+ * when a search filter narrows visible rows.
+ */
+export function buildRankedScoreboardView(
+  entries: ScoreboardEntry[],
+  filter: RankingFilter,
+  searchQuery: string
+): {
+  allRanked: ScoreboardEntry[];
+  filteredEntries: ScoreboardEntry[];
+  rankByAttemptId: Map<string, number>;
+} {
+  const allRanked = rankScoreboardEntries(entries, filter);
+  const rankByAttemptId = new Map<string, number>();
+  allRanked.forEach((entry, idx) => {
+    rankByAttemptId.set(entry.attempt_id, idx + 1);
+  });
+
+  const q = searchQuery.trim().toLowerCase();
+  const filteredEntries = q
+    ? allRanked.filter(
+        (item) =>
+          item.student_name.toLowerCase().includes(q) ||
+          item.student_code.toLowerCase().includes(q)
+      )
+    : allRanked;
+
+  return { allRanked, filteredEntries, rankByAttemptId };
 }
 
 export function formatDurationMs(durationMs: number): string {
