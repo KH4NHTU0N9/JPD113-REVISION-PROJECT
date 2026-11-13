@@ -112,54 +112,58 @@ export async function submitQuizSession(
     return data as QuizSubmissionResult;
   }
 
-  // Local Demo Mode: dynamically import fallback answer key only when needed
-  const { LOCAL_DEMO_ANSWER_KEY } = await import('../data/localDemoAnswerKey');
-  const submittedAt = new Date().toISOString();
-  const startedMs = new Date(session.startedAt).getTime();
-  const durationMs = Math.max(
-    0,
-    Number.isFinite(startedMs) ? Date.now() - startedMs : 0
-  );
+  // Local Demo Mode: statically guarded so Vite strips the demo answer chunk when Supabase env vars are set
+  if (!import.meta.env.VITE_SUPABASE_URL || !import.meta.env.VITE_SUPABASE_ANON_KEY) {
+    const { LOCAL_DEMO_ANSWER_KEY } = await import('../data/localDemoAnswerKey');
+    const submittedAt = new Date().toISOString();
+    const startedMs = new Date(session.startedAt).getTime();
+    const durationMs = Math.max(
+      0,
+      Number.isFinite(startedMs) ? Date.now() - startedMs : 0
+    );
 
-  let score = 0;
-  const results: GradedQuestionResult[] = LOCAL_DEMO_ANSWER_KEY.map((item) => {
-    const selected = answers[item.questionId] ?? null;
-    const isCorrect = selected === item.correctChoice;
-    if (isCorrect) score += 1;
-    return {
-      question_id: item.questionId,
-      selected_choice: selected,
-      correct_choice: item.correctChoice,
-      is_correct: isCorrect,
-      explanation: item.explanation,
+    let score = 0;
+    const results: GradedQuestionResult[] = LOCAL_DEMO_ANSWER_KEY.map((item) => {
+      const selected = answers[item.questionId] ?? null;
+      const isCorrect = selected === item.correctChoice;
+      if (isCorrect) score += 1;
+      return {
+        question_id: item.questionId,
+        selected_choice: selected,
+        correct_choice: item.correctChoice,
+        is_correct: isCorrect,
+        explanation: item.explanation,
+      };
+    });
+
+    const entry: ScoreboardEntry = {
+      id: session.attemptId,
+      attempt_id: session.attemptId,
+      student_name: session.studentName,
+      student_code: session.studentCode,
+      attempt_number: session.attemptNumber,
+      score,
+      total_questions: LOCAL_DEMO_ANSWER_KEY.length,
+      duration_ms: durationMs,
+      submitted_at: submittedAt,
     };
-  });
 
-  const entry: ScoreboardEntry = {
-    id: session.attemptId,
-    attempt_id: session.attemptId,
-    student_name: session.studentName,
-    student_code: session.studentCode,
-    attempt_number: session.attemptNumber,
-    score,
-    total_questions: LOCAL_DEMO_ANSWER_KEY.length,
-    duration_ms: durationMs,
-    submitted_at: submittedAt,
-  };
+    appendLocalDemoScoreboard(entry);
 
-  appendLocalDemoScoreboard(entry);
+    return {
+      attempt_id: session.attemptId,
+      attempt_number: session.attemptNumber,
+      student_name: session.studentName,
+      student_code: session.studentCode,
+      score,
+      total_questions: LOCAL_DEMO_ANSWER_KEY.length,
+      duration_ms: durationMs,
+      submitted_at: submittedAt,
+      results,
+    };
+  }
 
-  return {
-    attempt_id: session.attemptId,
-    attempt_number: session.attemptNumber,
-    student_name: session.studentName,
-    student_code: session.studentCode,
-    score,
-    total_questions: LOCAL_DEMO_ANSWER_KEY.length,
-    duration_ms: durationMs,
-    submitted_at: submittedAt,
-    results,
-  };
+  throw new Error('Phiên làm bài không khớp với cấu hình máy chủ.');
 }
 
 export async function fetchScoreboardEntries(): Promise<ScoreboardEntry[]> {

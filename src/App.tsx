@@ -1,8 +1,17 @@
-import { useEffect, useState } from 'react';
+import { Suspense, lazy, useEffect, useState } from 'react';
 import { HeaderBar, type ActiveRoute } from './components/HeaderBar';
 import { Phase1Container } from './components/Phase1Container';
-import { Phase2QuizRunner } from './components/Phase2QuizRunner';
-import { ScoreboardView } from './components/ScoreboardView';
+
+const Phase2QuizRunner = lazy(() =>
+  import('./components/Phase2QuizRunner').then((m) => ({
+    default: m.Phase2QuizRunner,
+  }))
+);
+const ScoreboardView = lazy(() =>
+  import('./components/ScoreboardView').then((m) => ({
+    default: m.ScoreboardView,
+  }))
+);
 import {
   loadReviewProgress,
   saveReviewProgress,
@@ -161,16 +170,32 @@ export default function App() {
         )}
 
         {activeRoute === 'phase2' && (
-          <Phase2QuizRunner
-            onGoToScoreboard={() => handleRouteChange('scoreboard')}
-            onScoreboardMutated={() =>
-              setScoreboardRefreshSignal((prev) => prev + 1)
+          <Suspense
+            fallback={
+              <div className="rounded-2xl border border-stone-200 bg-white p-8 text-center text-xs font-semibold text-stone-500">
+                Đang tải Phase 2 Quiz...
+              </div>
             }
-          />
+          >
+            <Phase2QuizRunner
+              onGoToScoreboard={() => handleRouteChange('scoreboard')}
+              onScoreboardMutated={() =>
+                setScoreboardRefreshSignal((prev) => prev + 1)
+              }
+            />
+          </Suspense>
         )}
 
         {activeRoute === 'scoreboard' && (
-          <ScoreboardView refreshSignal={scoreboardRefreshSignal} />
+          <Suspense
+            fallback={
+              <div className="rounded-2xl border border-stone-200 bg-white p-8 text-center text-xs font-semibold text-stone-500">
+                Đang tải Scoreboard...
+              </div>
+            }
+          >
+            <ScoreboardView refreshSignal={scoreboardRefreshSignal} />
+          </Suspense>
         )}
       </main>
     </div>
