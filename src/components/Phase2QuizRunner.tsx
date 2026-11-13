@@ -81,9 +81,16 @@ export function Phase2QuizRunner({
   const [startError, setStartError] = useState<string | null>(null);
   const [isStarting, setIsStarting] = useState(false);
 
-  const [session, setSession] = useState<QuizAttemptSession | null>(() =>
-    loadSavedSession()
-  );
+  const [session, setSession] = useState<QuizAttemptSession | null>(() => {
+    const saved = loadSavedSession();
+    const expectedMode = isSupabaseConfigured ? 'supabase' : 'local-demo';
+    if (saved && saved.mode !== expectedMode) {
+      saveActiveSession(null);
+      saveActiveAnswers({});
+      return null;
+    }
+    return saved;
+  });
   const [answers, setAnswers] = useState<Record<number, ChoiceKey>>(() => {
     const raw = loadSavedAnswers();
     const parsed: Record<number, ChoiceKey> = {};
