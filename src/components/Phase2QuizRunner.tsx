@@ -397,17 +397,11 @@ export function Phase2QuizRunner({
 
         <form
           onSubmit={handleStartQuiz}
-          className="rounded-2xl border border-stone-200 bg-white p-5 shadow-xs"
+          className="rounded-xl border border-stone-200 bg-white p-5 shadow-2xs"
         >
-          <span className="text-[11px] font-extrabold uppercase tracking-wider text-red-700">
-            Phase 2 · Thực chiến 20 câu Workbook
-          </span>
-          <h2 className="mt-1 text-lg font-extrabold text-stone-900">
-            Nhập thông tin để ghi danh lên Scoreboard
+          <h2 className="text-lg font-extrabold text-stone-900">
+            Quiz 20 câu · Ghi danh Scoreboard
           </h2>
-          <p className="mt-1 text-xs text-stone-600">
-            Xếp hạng trao thưởng dựa trên <strong>Điểm cao nhất → Thời gian làm nhanh nhất</strong>. Lượt thi đầu tiên (Lượt 1) được ưu tiên xét thưởng.
-          </p>
 
           <div className="mt-4 space-y-3">
             <label className="block text-xs">
