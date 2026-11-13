@@ -1,5 +1,5 @@
 import { useState } from 'react';
-import { ArrowRight, Bug, CheckCircle2 } from 'lucide-react';
+import { ArrowRight, Bug } from 'lucide-react';
 import { BUG_HUNT_CASES } from '../../data/phase1Games';
 import type { BugHuntCase } from '../../types/lesson';
 
@@ -50,21 +50,19 @@ export function BugHunterGame({
 
   return (
     <div className="space-y-4">
-      <div className="flex flex-wrap items-center justify-between gap-2 rounded-2xl border border-stone-200 bg-white px-4 py-3 shadow-xs">
+      <div className="flex flex-wrap items-center justify-between gap-2 rounded-xl border border-stone-200 bg-white px-4 py-2.5 shadow-2xs">
         <div className="flex items-center gap-2">
           <Bug className="h-4 w-4 text-red-700" />
-          <span className="text-sm font-extrabold text-stone-900">
-            Soi lỗi sai · Tìm và chạm sửa {allBugKeys.length} lỗi hay gặp nhất
-          </span>
+          <span className="text-sm font-extrabold text-stone-900">Soi lỗi sai</span>
         </div>
         <span
-          className={`rounded-full px-3 py-1 text-xs font-extrabold ${
+          className={`rounded-full px-2.5 py-0.5 text-xs font-extrabold ${
             allCleared || isCompleted
               ? 'bg-emerald-100 text-emerald-800'
               : 'bg-red-100 text-red-800'
           }`}
         >
-          Đã sửa {fixedTotal} / {allBugKeys.length} lỗi
+          {fixedTotal} / {allBugKeys.length} lỗi
         </span>
       </div>
 
@@ -83,15 +81,12 @@ export function BugHunterGame({
         return (
           <section
             key={huntCase.id}
-            className="rounded-2xl border border-stone-200 bg-white p-4 shadow-xs sm:p-5"
+            className="rounded-xl border border-stone-200 bg-white p-4 shadow-2xs"
           >
             <div className="flex flex-wrap items-center justify-between gap-2">
-              <div>
-                <h3 className="text-sm font-extrabold text-stone-900">{huntCase.title}</h3>
-                <p className="text-xs text-stone-500">{huntCase.instruction}</p>
-              </div>
-              <span className="rounded-full bg-stone-100 px-2.5 py-0.5 text-[11px] font-bold text-stone-700">
-                {caseFixedCount}/{caseBugs.length} ({huntCase.badge})
+              <h3 className="text-sm font-extrabold text-stone-900">{huntCase.title}</h3>
+              <span className="rounded-full bg-stone-100 px-2.5 py-0.5 text-[11px] font-bold text-stone-600">
+                {caseFixedCount}/{caseBugs.length}
               </span>
             </div>
 
@@ -137,25 +132,13 @@ export function BugHunterGame({
         );
       })}
 
-      <div className="flex flex-wrap items-center justify-between gap-3 rounded-2xl border border-stone-200 bg-white p-4 shadow-xs">
-        <div className="flex items-center gap-2 text-xs font-semibold text-stone-700">
-          <CheckCircle2
-            className={`h-4 w-4 ${
-              allCleared || isCompleted ? 'text-emerald-600' : 'text-stone-400'
-            }`}
-          />
-          <span>
-            {allCleared || isCompleted
-              ? 'Hoàn thành toàn bộ phần ôn tập — sẵn sàng làm Quiz 20 câu!'
-              : 'Sửa hết 7 lỗi trên hoặc chuyển sang Quiz bất cứ lúc nào.'}
-          </span>
-        </div>
+      <div className="flex justify-end">
         <button
           type="button"
           onClick={onGoToPhase2}
-          className="flex items-center gap-2 rounded-xl bg-red-700 px-5 py-2.5 text-sm font-extrabold text-white shadow-xs transition hover:bg-red-800"
+          className="flex items-center gap-2 rounded-xl bg-red-700 px-5 py-2.5 text-xs font-extrabold text-white transition hover:bg-red-800"
         >
-          <span>Vào Bước 3: Quiz 20 câu</span>
+          <span>Bước 3 · Quiz 20 câu</span>
           <ArrowRight className="h-4 w-4" />
         </button>
       </div>
