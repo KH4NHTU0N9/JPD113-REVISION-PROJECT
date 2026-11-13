@@ -78,16 +78,15 @@ export function Part3ReviewTab({
 
   return (
     <div className="space-y-4">
-
-      <section className="rounded-2xl border border-stone-200 bg-white p-4 shadow-xs">
-        <h3 className="mb-3 text-sm font-extrabold text-stone-900">
-          1. Từ vựng Sở thích (14 từ) & Mẫu câu với trợ từ と
+      <section className="rounded-xl border border-stone-200 bg-white p-3.5 shadow-2xs sm:p-4">
+        <h3 className="mb-2.5 text-sm font-extrabold text-stone-900">
+          1. Sở thích & Trợ từ と
         </h3>
         <div className="grid grid-cols-2 gap-2 sm:grid-cols-3 md:grid-cols-4">
           {HOBBIES.map((h) => (
             <div
               key={h.id}
-              className="rounded-xl border border-stone-100 bg-stone-50 p-2.5 text-xs"
+              className="rounded-xl border border-stone-200/80 bg-stone-50/50 p-2.5 text-xs"
             >
               <p className="font-jp font-bold text-stone-900">{h.kana}</p>
               {h.kanji !== h.kana && (
@@ -101,16 +100,16 @@ export function Part3ReviewTab({
           ))}
         </div>
 
-        <div className="mt-4 grid gap-2 sm:grid-cols-3">
+        <div className="mt-3 grid gap-2 sm:grid-cols-3">
           {HOBBY_STRUCTURES.map((s) => (
             <div
               key={s.title}
-              className="rounded-xl border border-stone-200 bg-stone-50 p-3 text-xs"
+              className="rounded-xl border border-stone-200/80 bg-stone-50/50 p-3 text-xs"
             >
               <p className="font-bold text-stone-700">{s.title}</p>
               <p className="font-jp mt-1 font-bold text-stone-900">{s.jp}</p>
               {displayMode === 'full' && (
-                <p className="text-[11px] text-stone-500">{s.romaji}</p>
+                <p className="text-[11px] text-stone-400">{s.romaji}</p>
               )}
               <p className="mt-0.5 text-stone-600">{s.vi}</p>
             </div>
@@ -119,9 +118,9 @@ export function Part3ReviewTab({
       </section>
 
       <div className="grid gap-4 lg:grid-cols-2">
-        <section className="rounded-2xl border border-stone-200 bg-white p-4 shadow-xs">
-          <h3 className="mb-3 text-sm font-extrabold text-stone-900">
-            2. Tổng kết cấu trúc Jikoshoukai
+        <section className="rounded-xl border border-stone-200 bg-white p-3.5 shadow-2xs sm:p-4">
+          <h3 className="mb-2.5 text-sm font-extrabold text-stone-900">
+            2. Cấu trúc Jikoshoukai
           </h3>
           <div className="divide-y divide-stone-100 text-xs">
             {JIKOSHOUKAI_SUMMARY_ROWS.map((row) => (
@@ -133,16 +132,16 @@ export function Part3ReviewTab({
           </div>
         </section>
 
-        <section className="rounded-2xl border border-stone-200 bg-white p-4 shadow-xs">
-          <h3 className="mb-3 text-sm font-extrabold text-stone-900">
+        <section className="rounded-xl border border-stone-200 bg-white p-3.5 shadow-2xs sm:p-4">
+          <h3 className="mb-2.5 text-sm font-extrabold text-stone-900">
             3. {PAKKU_SAMPLE.title}
           </h3>
-          <div className="space-y-1.5 rounded-xl bg-stone-50 p-3 text-xs">
+          <div className="space-y-1.5 rounded-xl bg-stone-50/70 p-3 text-xs">
             {PAKKU_SAMPLE.lines.map((line) => (
               <div key={line.jp} className="border-b border-stone-200/60 pb-1.5 last:border-none last:pb-0">
                 <p className="font-jp font-bold text-stone-900">{line.jp}</p>
                 {displayMode === 'full' && (
-                  <p className="text-[11px] text-stone-500">{line.romaji}</p>
+                  <p className="text-[11px] text-stone-400">{line.romaji}</p>
                 )}
                 <p className="text-stone-600">{line.vi}</p>
               </div>
