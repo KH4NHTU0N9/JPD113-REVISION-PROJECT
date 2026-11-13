@@ -130,7 +130,7 @@ export function SpeedMatchGame({
   };
 
   return (
-    <section className="rounded-2xl border border-stone-200 bg-white p-4 shadow-xs sm:p-5">
+    <section className="rounded-xl border border-stone-200 bg-white p-4 shadow-2xs sm:p-5">
       <div className="flex flex-wrap items-center justify-between gap-2">
         <div className="flex flex-wrap items-center gap-1.5">
           {MATCH_ROUNDS.map((r, idx) => {
@@ -180,7 +180,6 @@ export function SpeedMatchGame({
 
       <div className="mt-3">
         <h3 className="text-sm font-extrabold text-stone-900">{currentRound.title}</h3>
-        <p className="text-xs text-stone-500">{currentRound.subtitle}</p>
       </div>
 
       {errorHint && (
