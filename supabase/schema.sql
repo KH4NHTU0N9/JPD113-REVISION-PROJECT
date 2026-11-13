@@ -54,6 +54,10 @@ create table if not exists public.quiz_attempts (
   unique (student_code, attempt_number)
 );
 
+create unique index if not exists idx_quiz_attempts_active_code
+  on public.quiz_attempts (student_code)
+  where status = 'in_progress';
+
 alter table public.quiz_attempts enable row level security;
 revoke all on public.quiz_attempts from public, anon, authenticated;
 
@@ -108,17 +112,34 @@ security definer
 set search_path = ''
 as $$
 declare
-  v_name text := regexp_replace(trim(coalesce(p_student_name, '')), '\s+', ' ', 'g');
-  v_code text := upper(regexp_replace(trim(coalesce(p_student_code, '')), '\s+', '', 'g'));
+  v_name text := normalize(
+    regexp_replace(
+      regexp_replace(coalesce(p_student_name, ''), E'[\\u200B-\\u200D\\uFEFF\\u0000-\\u001F\\u007F]', '', 'g'),
+      '\s+',
+      ' ',
+      'g'
+    ),
+    NFC
+  );
+  v_code text := upper(
+    regexp_replace(
+      regexp_replace(coalesce(p_student_code, ''), E'[\\u200B-\\u200D\\uFEFF\\u0000-\\u001F\\u007F]', '', 'g'),
+      '\s+',
+      '',
+      'g'
+    )
+  );
   v_next_attempt integer;
   v_attempt public.quiz_attempts%rowtype;
 begin
+  v_name := trim(v_name);
+
   if char_length(v_name) < 2 or char_length(v_name) > 60 then
     raise exception 'Tên phải từ 2 đến 60 ký tự.';
   end if;
 
-  if char_length(v_code) < 2 or char_length(v_code) > 24 then
-    raise exception 'MSSV hoặc mã định danh phải từ 2 đến 24 ký tự.';
+  if v_code !~ '^[A-Z0-9_-]{2,24}$' then
+    raise exception 'MSSV hoặc mã định danh phải từ 2 đến 24 ký tự (chữ không dấu, số, - hoặc _).';
   end if;
 
   -- Serialize concurrent starts for the same student_code
@@ -135,8 +156,8 @@ begin
   limit 1;
 
   if found then
-    if lower(v_attempt.student_name) <> lower(v_name) then
-      raise exception 'MSSV % đang có một lượt làm bài chưa nộp dưới tên "%". Hãy dùng đúng họ tên đã đăng ký hoặc hoàn tất lượt hiện tại.', v_code, v_attempt.student_name;
+    if lower(normalize(v_attempt.student_name, NFC)) <> lower(v_name) then
+      raise exception 'MSSV % đang có một lượt làm bài chưa nộp dưới tên khác. Hãy nhập đúng họ tên ban đầu đã đăng ký để tiếp tục.', v_code;
     end if;
 
     return jsonb_build_object(
@@ -144,7 +165,8 @@ begin
       'attempt_number', v_attempt.attempt_number,
       'student_name', v_attempt.student_name,
       'student_code', v_attempt.student_code,
-      'started_at', v_attempt.started_at
+      'started_at', v_attempt.started_at,
+      'server_now', clock_timestamp()
     );
   end if;
 
@@ -172,7 +194,8 @@ begin
     'attempt_number', v_attempt.attempt_number,
     'student_name', v_attempt.student_name,
     'student_code', v_attempt.student_code,
-    'started_at', v_attempt.started_at
+    'started_at', v_attempt.started_at,
+    'server_now', clock_timestamp()
   );
 end;
 $$;
@@ -264,7 +287,7 @@ begin
     order by question_id asc
   loop
     v_selected := v_raw_answers ->> (v_key.question_id::text);
-    if v_selected not in ('A', 'B', 'C', 'D') then
+    if v_selected is null or v_selected not in ('A', 'B', 'C', 'D') then
       v_selected := null;
     else
       v_clean_answers := v_clean_answers || jsonb_build_object(v_key.question_id::text, v_selected);
