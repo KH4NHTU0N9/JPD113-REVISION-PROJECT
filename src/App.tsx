@@ -17,7 +17,7 @@ import {
   saveReviewProgress,
   type ReviewProgressState,
 } from './lib/storage';
-import type { DisplayMode } from './types/lesson';
+import type { DisplayMode, Phase1GameId } from './types/lesson';
 
 const SEVEN_MINUTES_SECONDS = 7 * 60;
 
@@ -172,13 +172,27 @@ export default function App() {
     }));
   };
 
-  const handleCompletePart = (part: 'part1' | 'part2' | 'part3') => {
-    updateProgress((prev) => ({
-      ...prev,
-      part1Completed: part === 'part1' ? true : prev.part1Completed,
-      part2Completed: part === 'part2' ? true : prev.part2Completed,
-      part3Completed: part === 'part3' ? true : prev.part3Completed,
-    }));
+  const handleAwardGameProgress = (
+    deltaXp: number,
+    combo: number,
+    completedGame?: Phase1GameId
+  ) => {
+    updateProgress((prev) => {
+      const nextGames =
+        completedGame && !prev.completedGames.includes(completedGame)
+          ? [...prev.completedGames, completedGame]
+          : prev.completedGames;
+
+      return {
+        ...prev,
+        completedGames: nextGames,
+        part1Completed: prev.part1Completed || completedGame === 'tinder',
+        part2Completed: prev.part2Completed || completedGame === 'match',
+        part3Completed: prev.part3Completed || completedGame === 'bug',
+        phase1Xp: prev.phase1Xp + Math.max(0, deltaXp),
+        phase1BestCombo: Math.max(prev.phase1BestCombo, combo),
+      };
+    });
   };
 
   const handleRecordWeakNote = (note: string) => {
@@ -209,7 +223,7 @@ export default function App() {
           <Phase1Container
             progress={progress}
             displayMode={progress.displayMode}
-            onCompletePart={handleCompletePart}
+            onAwardGameProgress={handleAwardGameProgress}
             onRecordWeakNote={handleRecordWeakNote}
             onGoToPhase2={() => handleRouteChange('phase2')}
           />
