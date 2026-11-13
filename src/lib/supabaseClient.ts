@@ -14,26 +14,84 @@ import {
 
 export { isSupabaseConfigured };
 
+const SUPABASE_REQUEST_TIMEOUT_MS = 15000;
+const INVISIBLE_OR_CONTROL_RE = /[\u200B-\u200D\uFEFF\u0000-\u001F\u007F]/g;
+export const STUDENT_CODE_PATTERN = /^[A-Z0-9_-]{2,24}$/;
+
 let clientPromise: Promise<SupabaseClient | null> | null = null;
+let realtimeChannelSeq = 0;
 
 async function getSupabaseClient(): Promise<SupabaseClient | null> {
   if (!isSupabaseConfigured) {
     return null;
   }
   if (!clientPromise) {
-    clientPromise = import('@supabase/supabase-js').then(({ createClient }) =>
-      createClient(supabaseEnv.url, supabaseEnv.anonKey)
-    );
+    clientPromise = import('@supabase/supabase-js')
+      .then(({ createClient }) =>
+        createClient(supabaseEnv.url, supabaseEnv.anonKey, {
+          db: {
+            timeout: SUPABASE_REQUEST_TIMEOUT_MS,
+          },
+          auth: {
+            persistSession: false,
+            autoRefreshToken: false,
+            detectSessionInUrl: false,
+          },
+        })
+      )
+      .catch((err) => {
+        // Clear rejected promise so transient chunk/network failures can recover on retry
+        clientPromise = null;
+        throw err;
+      });
   }
   return clientPromise;
 }
 
 export function normalizeStudentCode(rawCode: string): string {
-  return rawCode.trim().replace(/\s+/g, '').toUpperCase();
+  return rawCode
+    .replace(INVISIBLE_OR_CONTROL_RE, '')
+    .trim()
+    .replace(/\s+/g, '')
+    .normalize('NFC')
+    .toUpperCase();
 }
 
 export function normalizeStudentName(rawName: string): string {
-  return rawName.trim().replace(/\s+/g, ' ');
+  return rawName
+    .replace(INVISIBLE_OR_CONTROL_RE, '')
+    .trim()
+    .replace(/\s+/g, ' ')
+    .normalize('NFC');
+}
+
+export function computeSyncedLocalStartMs(
+  startedAt: string,
+  serverNow?: string,
+  clientNowMs: number = Date.now()
+): { localStartedAtMs: number; serverOffsetMs: number } {
+  const startedMs = new Date(startedAt).getTime();
+  const serverNowMs = serverNow ? new Date(serverNow).getTime() : Number.NaN;
+
+  if (Number.isFinite(startedMs) && Number.isFinite(serverNowMs)) {
+    const serverOffsetMs = clientNowMs - serverNowMs;
+    const syncedStartMs = Math.min(clientNowMs, startedMs + serverOffsetMs);
+    return { localStartedAtMs: syncedStartMs, serverOffsetMs };
+  }
+
+  return { localStartedAtMs: clientNowMs, serverOffsetMs: 0 };
+}
+
+function formatSupabaseError(rawMessage: string | undefined, fallback: string): string {
+  const msg = rawMessage?.trim() ?? '';
+  if (!msg) return fallback;
+  if (/AbortError|TimeoutError|aborted/i.test(msg)) {
+    return 'Kết nối máy chủ bị quá thời gian chờ (15 giây). Dữ liệu làm bài vẫn được giữ trên máy — vui lòng bấm thử lại.';
+  }
+  if (/Failed to fetch|NetworkError|Load failed|fetch/i.test(msg)) {
+    return 'Mất kết nối mạng hoặc không thể chạm tới máy chủ. Vui lòng kiểm tra Wi-Fi/4G và bấm thử lại.';
+  }
+  return msg;
 }
 
 export async function startQuizSession(
@@ -46,8 +104,10 @@ export async function startQuizSession(
   if (studentName.length < 2 || studentName.length > 60) {
     throw new Error('Họ tên phải từ 2 đến 60 ký tự.');
   }
-  if (studentCode.length < 2 || studentCode.length > 24) {
-    throw new Error('MSSV hoặc mã định danh phải từ 2 đến 24 ký tự.');
+  if (!STUDENT_CODE_PATTERN.test(studentCode)) {
+    throw new Error(
+      'MSSV hoặc mã định danh phải từ 2 đến 24 ký tự (chữ cái không dấu, số, - hoặc _).'
+    );
   }
 
   const client = await getSupabaseClient();
@@ -58,7 +118,12 @@ export async function startQuizSession(
     });
 
     if (error) {
-      throw new Error(error.message || 'Không thể khởi tạo phiên thi trên Supabase.');
+      throw new Error(
+        formatSupabaseError(
+          error.message,
+          'Không thể khởi tạo phiên thi trên Supabase.'
+        )
+      );
     }
 
     const payload = data as {
@@ -67,7 +132,13 @@ export async function startQuizSession(
       student_name: string;
       student_code: string;
       started_at: string;
+      server_now?: string;
     };
+
+    const { localStartedAtMs, serverOffsetMs } = computeSyncedLocalStartMs(
+      payload.started_at,
+      payload.server_now
+    );
 
     return {
       attemptId: payload.attempt_id,
@@ -75,7 +146,8 @@ export async function startQuizSession(
       studentName: payload.student_name,
       studentCode: payload.student_code,
       startedAt: payload.started_at,
-      localStartedAtMs: Date.now(),
+      localStartedAtMs,
+      serverOffsetMs,
       mode: 'supabase',
     };
   }
@@ -88,7 +160,7 @@ export async function startQuizSession(
 
   return {
     attemptId:
-      typeof crypto !== 'undefined' && crypto.randomUUID
+      typeof crypto !== 'undefined' && typeof crypto.randomUUID === 'function'
         ? crypto.randomUUID()
         : `demo-${Date.now()}-${Math.random().toString(16).slice(2)}`,
     attemptNumber: previousCount + 1,
@@ -117,7 +189,9 @@ export async function submitQuizSession(
     });
 
     if (error) {
-      throw new Error(error.message || 'Không thể nộp bài lên Supabase.');
+      throw new Error(
+        formatSupabaseError(error.message, 'Không thể nộp bài lên Supabase.')
+      );
     }
 
     return {
@@ -127,7 +201,7 @@ export async function submitQuizSession(
   }
 
   // Local Demo Mode: statically guarded so Vite strips the demo answer chunk when Supabase env vars are set
-  if (!import.meta.env.VITE_SUPABASE_URL || !import.meta.env.VITE_SUPABASE_ANON_KEY) {
+  if (!import.meta.env.VITE_SUPABASE_URL?.trim() || !import.meta.env.VITE_SUPABASE_ANON_KEY?.trim()) {
     const { LOCAL_DEMO_ANSWER_KEY } = await import('../data/localDemoAnswerKey');
     const submittedAt = new Date().toISOString();
     const startedMs =
@@ -197,7 +271,7 @@ export async function fetchScoreboardEntries(): Promise<ScoreboardEntry[]> {
         .order('score', { ascending: false })
         .order('duration_ms', { ascending: true })
         .order('submitted_at', { ascending: true })
-        .limit(200),
+        .limit(500),
       client
         .from('scoreboard_entries')
         .select(
@@ -206,17 +280,17 @@ export async function fetchScoreboardEntries(): Promise<ScoreboardEntry[]> {
         .order('score', { ascending: false })
         .order('duration_ms', { ascending: true })
         .order('submitted_at', { ascending: true })
-        .limit(200),
+        .limit(500),
     ]);
 
     if (firstAttemptRes.error) {
       throw new Error(
-        firstAttemptRes.error.message || 'Không thể tải Scoreboard.'
+        formatSupabaseError(firstAttemptRes.error.message, 'Không thể tải Scoreboard.')
       );
     }
     if (allAttemptsRes.error) {
       throw new Error(
-        allAttemptsRes.error.message || 'Không thể tải Scoreboard.'
+        formatSupabaseError(allAttemptsRes.error.message, 'Không thể tải Scoreboard.')
       );
     }
 
@@ -246,28 +320,37 @@ export function subscribeScoreboardChanges(
   let activeClient: SupabaseClient | null = null;
   let activeChannel: RealtimeChannel | null = null;
 
-  void getSupabaseClient().then((client) => {
-    if (disposed || !client) return;
-    activeClient = client;
-    activeChannel = client
-      .channel('public:scoreboard_entries')
-      .on(
-        'postgres_changes',
-        {
-          event: 'INSERT',
-          schema: 'public',
-          table: 'scoreboard_entries',
-        },
-        (payload) => {
-          if (payload.new) {
-            onNewEntry(payload.new as ScoreboardEntry);
+  void getSupabaseClient()
+    .then((client) => {
+      if (disposed || !client) return;
+      activeClient = client;
+      const channelName = `scoreboard:entries:${++realtimeChannelSeq}:${Date.now()}`;
+      activeChannel = client
+        .channel(channelName)
+        .on(
+          'postgres_changes',
+          {
+            event: 'INSERT',
+            schema: 'public',
+            table: 'scoreboard_entries',
+          },
+          (payload) => {
+            if (!disposed && payload.new) {
+              onNewEntry(payload.new as ScoreboardEntry);
+            }
           }
-        }
-      )
-      .subscribe((status) => {
-        onStatusChange?.(status);
-      });
-  });
+        )
+        .subscribe((status) => {
+          if (!disposed) {
+            onStatusChange?.(status);
+          }
+        });
+    })
+    .catch(() => {
+      if (!disposed) {
+        onStatusChange?.('CHANNEL_ERROR');
+      }
+    });
 
   return () => {
     disposed = true;

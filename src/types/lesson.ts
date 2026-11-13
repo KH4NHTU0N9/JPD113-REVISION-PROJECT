@@ -149,6 +149,7 @@ export interface QuizAttemptSession {
   studentCode: string;
   startedAt: string;
   localStartedAtMs?: number;
+  serverOffsetMs?: number;
   mode: 'supabase' | 'local-demo';
 }
 
