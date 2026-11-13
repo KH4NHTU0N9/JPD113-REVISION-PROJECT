@@ -81,17 +81,17 @@ export function Phase2QuizRunner({
   const [startError, setStartError] = useState<string | null>(null);
   const [isStarting, setIsStarting] = useState(false);
 
+  const expectedMode = isSupabaseConfigured ? 'supabase' : 'local-demo';
+
   const [session, setSession] = useState<QuizAttemptSession | null>(() => {
     const saved = loadSavedSession();
-    const expectedMode = isSupabaseConfigured ? 'supabase' : 'local-demo';
-    if (saved && saved.mode !== expectedMode) {
-      saveActiveSession(null);
-      saveActiveAnswers({});
-      return null;
-    }
-    return saved;
+    return saved && saved.mode === expectedMode ? saved : null;
   });
   const [answers, setAnswers] = useState<Record<number, ChoiceKey>>(() => {
+    const saved = loadSavedSession();
+    if (saved && saved.mode !== expectedMode) {
+      return {};
+    }
     const raw = loadSavedAnswers();
     const parsed: Record<number, ChoiceKey> = {};
     for (const [k, v] of Object.entries(raw)) {
@@ -107,10 +107,24 @@ export function Phase2QuizRunner({
   const [submitError, setSubmitError] = useState<string | null>(null);
   const [confirmIncomplete, setConfirmIncomplete] = useState(false);
 
-  const [result, setResult] = useState<QuizSubmissionResult | null>(() =>
-    loadSavedQuizResult()
-  );
+  const [result, setResult] = useState<QuizSubmissionResult | null>(() => {
+    const savedResult = loadSavedQuizResult();
+    if (!savedResult) return null;
+    return !savedResult.mode || savedResult.mode === expectedMode ? savedResult : null;
+  });
   const [showWrongOnly, setShowWrongOnly] = useState(false);
+
+  useEffect(() => {
+    const savedSession = loadSavedSession();
+    if (savedSession && savedSession.mode !== expectedMode) {
+      saveActiveSession(null);
+      saveActiveAnswers({});
+    }
+    const savedResult = loadSavedQuizResult();
+    if (savedResult && savedResult.mode && savedResult.mode !== expectedMode) {
+      saveQuizResult(null);
+    }
+  }, [expectedMode]);
 
   useEffect(() => {
     if (!session) {
@@ -118,13 +132,26 @@ export function Phase2QuizRunner({
       return;
     }
     const updateClock = () => {
-      const startMs = new Date(session.startedAt).getTime();
+      const startMs =
+        session.localStartedAtMs ?? new Date(session.startedAt).getTime();
       if (!Number.isFinite(startMs)) return;
       setElapsedSeconds(Math.max(0, Math.floor((Date.now() - startMs) / 1000)));
     };
     updateClock();
-    const id = window.setInterval(updateClock, 1000);
-    return () => window.clearInterval(id);
+    const id = window.setInterval(updateClock, 500);
+    const handleVisibility = () => {
+      if (document.visibilityState === 'visible') {
+        updateClock();
+      }
+    };
+    document.addEventListener('visibilitychange', handleVisibility);
+    window.addEventListener('focus', updateClock);
+
+    return () => {
+      window.clearInterval(id);
+      document.removeEventListener('visibilitychange', handleVisibility);
+      window.removeEventListener('focus', updateClock);
+    };
   }, [session]);
 
   const handleStartQuiz = async (e: React.FormEvent) => {
@@ -393,7 +420,7 @@ export function Phase2QuizRunner({
                 value={studentName}
                 onChange={(e) => setStudentName(e.target.value)}
                 placeholder="Ví dụ: Nguyễn Văn An"
-                className="mt-1 w-full rounded-xl border border-stone-300 px-3 py-2.5 text-sm font-medium focus:border-red-600 focus:outline-none"
+                className="mt-1 w-full rounded-xl border border-stone-300 px-3 py-2.5 text-base font-medium focus:border-red-600 focus:outline-none sm:text-sm"
               />
             </label>
 
@@ -407,7 +434,7 @@ export function Phase2QuizRunner({
                 value={studentCode}
                 onChange={(e) => setStudentCode(e.target.value)}
                 placeholder="Ví dụ: SE181234"
-                className="mt-1 w-full rounded-xl border border-stone-300 px-3 py-2.5 text-sm font-medium uppercase focus:border-red-600 focus:outline-none"
+                className="mt-1 w-full rounded-xl border border-stone-300 px-3 py-2.5 text-base font-medium uppercase focus:border-red-600 focus:outline-none sm:text-sm"
               />
             </label>
           </div>
