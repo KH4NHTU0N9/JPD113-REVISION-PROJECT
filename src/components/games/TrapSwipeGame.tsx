@@ -74,10 +74,12 @@ export function TrapSwipeGame({
   useEffect(() => {
     if (!keyboardEnabled || finished) return;
     const onKeyDown = (e: KeyboardEvent) => {
+      if (e.repeat || e.isComposing) return;
       const target = e.target as HTMLElement | null;
       if (
         target &&
-        (target.tagName === 'INPUT' ||
+        (target.isContentEditable ||
+          target.tagName === 'INPUT' ||
           target.tagName === 'TEXTAREA' ||
           target.tagName === 'SELECT')
       ) {
@@ -93,6 +95,9 @@ export function TrapSwipeGame({
           handleJudge(true);
         }
       } else if (e.key === 'Enter' || e.key === ' ') {
+        if (target?.closest('button, a, [role="button"]')) {
+          return;
+        }
         e.preventDefault();
         handleNext();
       }
