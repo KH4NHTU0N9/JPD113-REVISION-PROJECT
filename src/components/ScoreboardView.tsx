@@ -85,10 +85,14 @@ export function ScoreboardView({ refreshSignal }: ScoreboardViewProps) {
       },
       (status) => {
         setRealtimeStatus(status);
-        // Close the initial cold-boot gap and catch any entries submitted during disconnect
+        // Catch any entries submitted while disconnected before channel joined
         if (status === 'SUBSCRIBED') {
           void loadEntries({ silent: true });
         }
+      },
+      // Close the ~2s cold-start gap between channel SUBSCRIBED and Postgres CDC ready
+      () => {
+        void loadEntries({ silent: true });
       }
     );
     return unsubscribe;
