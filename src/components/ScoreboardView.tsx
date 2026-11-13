@@ -72,6 +72,35 @@ export function ScoreboardView({ refreshSignal }: ScoreboardViewProps) {
     return unsubscribe;
   }, []);
 
+  useEffect(() => {
+    if (!isSupabaseConfigured) return;
+    const handleResync = () => {
+      if (document.visibilityState === 'visible') {
+        void loadEntries();
+      }
+    };
+    const handleOnline = () => {
+      void loadEntries();
+    };
+    document.addEventListener('visibilitychange', handleResync);
+    window.addEventListener('online', handleOnline);
+    return () => {
+      document.removeEventListener('visibilitychange', handleResync);
+      window.removeEventListener('online', handleOnline);
+    };
+  }, [loadEntries]);
+
+  useEffect(() => {
+    if (!showQrModal) return;
+    const handleKeyDown = (e: KeyboardEvent) => {
+      if (e.key === 'Escape') {
+        setShowQrModal(false);
+      }
+    };
+    window.addEventListener('keydown', handleKeyDown);
+    return () => window.removeEventListener('keydown', handleKeyDown);
+  }, [showQrModal]);
+
   const rankedEntries = useMemo(() => {
     const sorted = rankScoreboardEntries(entries, filterMode);
     const q = searchQuery.trim().toLowerCase();
@@ -89,11 +118,14 @@ export function ScoreboardView({ refreshSignal }: ScoreboardViewProps) {
     const csv = buildScoreboardCsv(rankedEntries);
     const blob = new Blob([csv], { type: 'text/csv;charset=utf-8;' });
     const url = URL.createObjectURL(blob);
+    const localDate = new Intl.DateTimeFormat('en-CA', {
+      timeZone: 'Asia/Ho_Chi_Minh',
+    }).format(new Date());
     const anchor = document.createElement('a');
     anchor.href = url;
-    anchor.download = `jpd113-bai1-scoreboard-${new Date().toISOString().slice(0, 10)}.csv`;
+    anchor.download = `jpd113-bai1-scoreboard-${localDate}.csv`;
     anchor.click();
-    URL.revokeObjectURL(url);
+    window.setTimeout(() => URL.revokeObjectURL(url), 1500);
   };
 
   return (
@@ -233,7 +265,7 @@ export function ScoreboardView({ refreshSignal }: ScoreboardViewProps) {
               value={searchQuery}
               onChange={(e) => setSearchQuery(e.target.value)}
               placeholder="Tìm tên hoặc MSSV..."
-              className="w-full rounded-xl border border-stone-200 py-2 pr-3 pl-8 text-xs font-medium focus:border-red-600 focus:outline-none"
+              className="w-full rounded-xl border border-stone-200 py-2 pr-3 pl-8 text-base font-medium focus:border-red-600 focus:outline-none sm:text-xs"
             />
           </div>
         </div>
@@ -301,12 +333,16 @@ export function ScoreboardView({ refreshSignal }: ScoreboardViewProps) {
 
       {showQrModal && (
         <div
+          onClick={() => setShowQrModal(false)}
           className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 p-4"
           role="dialog"
           aria-modal="true"
           aria-label="Mã QR truy cập lớp học"
         >
-          <div className="w-full max-w-sm rounded-3xl bg-white p-6 text-center shadow-xl">
+          <div
+            onClick={(e) => e.stopPropagation()}
+            className="w-full max-w-sm rounded-3xl bg-white p-6 text-center shadow-xl"
+          >
             <div className="flex items-center justify-between">
               <h3 className="text-base font-extrabold text-stone-900">
                 Quét QR vào Ôn tập & Quiz

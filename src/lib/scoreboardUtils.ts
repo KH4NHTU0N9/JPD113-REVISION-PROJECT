@@ -49,11 +49,12 @@ export function formatDurationMs(durationMs: number): string {
 }
 
 /**
- * Neutralizes spreadsheet formula injection (=, +, -, @, tab, CR) and quotes CSV cells safely.
+ * Neutralizes spreadsheet formula injection (=, +, -, @, tab, CR, full-width variants)
+ * and quotes CSV cells safely per RFC 4180.
  */
 export function escapeCsvCell(rawValue: string | number): string {
   const str = String(rawValue);
-  const formulaSafe = /^[=+\-@\t\r]/.test(str) ? `'${str}` : str;
+  const formulaSafe = /^[=+\-@\t\r＝＋－＠]/.test(str) ? `'${str}` : str;
   const escaped = formulaSafe.replace(/"/g, '""');
   return `"${escaped}"`;
 }
@@ -87,6 +88,6 @@ export function buildScoreboardCsv(entries: ScoreboardEntry[]): string {
       .join(',')
   );
 
-  // Prefix UTF-8 BOM so Vietnamese and Japanese render properly in Excel
-  return `\uFEFF${[headers.map(escapeCsvCell).join(','), ...rows].join('\n')}`;
+  // Prefix UTF-8 BOM and use CRLF so Vietnamese & Japanese render properly in Excel
+  return `\uFEFF${[headers.map(escapeCsvCell).join(','), ...rows].join('\r\n')}`;
 }
