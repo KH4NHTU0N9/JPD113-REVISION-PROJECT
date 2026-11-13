@@ -242,29 +242,27 @@ export function Phase1Container({
           />
         </div>
 
-        <section className="rounded-2xl border border-stone-200 bg-white p-4 shadow-xs">
+        <section className="rounded-xl border border-stone-200 bg-white p-3.5 shadow-2xs sm:p-4">
           <div className="mb-2 flex items-center gap-2">
             <ShieldAlert className="h-4 w-4 text-red-700" />
-            <h3 className="text-sm font-extrabold text-stone-900">
-              Bảng tổng hợp 6 lưu ý vàng trước khi sang Luyện tập & Quiz
-            </h3>
+            <h3 className="text-sm font-extrabold text-stone-900">6 lưu ý vàng</h3>
           </div>
           <ul className="grid gap-1.5 text-xs text-stone-700 sm:grid-cols-2">
             {SIX_GOLDEN_TRAPS.map((item) => (
-              <li key={item} className="rounded-lg bg-stone-50 px-3 py-2">
+              <li key={item} className="rounded-lg bg-stone-50/70 px-3 py-2">
                 {item}
               </li>
             ))}
           </ul>
 
-          <div className="mt-4 flex flex-wrap justify-end gap-2">
+          <div className="mt-3.5 flex justify-end">
             <button
               type="button"
               onClick={jumpToGames}
-              className="flex items-center gap-2 rounded-xl bg-red-700 px-5 py-2.5 text-sm font-extrabold text-white shadow-sm hover:bg-red-800"
+              className="flex items-center gap-2 rounded-xl bg-red-700 px-4 py-2 text-xs font-extrabold text-white transition hover:bg-red-800"
             >
               <Gamepad2 className="h-4 w-4" />
-              <span>Đã xem Lý thuyết → Luyện tập 4 chặng</span>
+              <span>Bước 2 · Luyện tập 4 chặng</span>
               <ArrowRight className="h-4 w-4" />
             </button>
           </div>
@@ -314,17 +312,15 @@ export function Phase1Container({
         </div>
 
         {progress.weakNotes.length > 0 && (
-          <section className="rounded-2xl border border-amber-300 bg-amber-50 p-3.5">
+          <section className="rounded-xl border border-amber-200 bg-amber-50/70 p-3.5">
             <div className="flex flex-wrap items-center justify-between gap-2">
-              <p className="text-xs font-extrabold text-amber-950">
-                Nhắc riêng trước khi vào Quiz (bẫy bạn vừa chạm nhầm):
-              </p>
+              <p className="text-xs font-extrabold text-amber-950">Lỗi vừa nhầm:</p>
               <button
                 type="button"
                 onClick={() => openQuickSheet('traps')}
                 className="text-xs font-bold text-red-700 underline hover:text-red-800"
               >
-                Mở 6 lưu ý vàng
+                6 lưu ý vàng
               </button>
             </div>
             <ul className="mt-1.5 list-disc space-y-0.5 pl-4 text-xs text-amber-900">
