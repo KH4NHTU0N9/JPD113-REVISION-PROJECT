@@ -1,0 +1,268 @@
+import type {
+  ConfusingPair,
+  CountryItem,
+  GrammarPattern,
+  VocabItem,
+} from '../types/lesson';
+
+export const PRONOUNS_AND_TITLES: VocabItem[] = [
+  { id: 'p1', kanji: '私', kana: 'わたし', romaji: 'watashi', meaning: 'Tôi' },
+  { id: 'p2', kanji: '名前', kana: 'なまえ', romaji: 'namae', meaning: 'Tên' },
+  { id: 'p3', kanji: '国', kana: 'くに', romaji: 'kuni', meaning: 'Đất nước / Quốc gia' },
+  { id: 'p4', kanji: '仕事', kana: 'しごと', romaji: 'shigoto', meaning: 'Công việc / Nghề nghiệp' },
+  { id: 'p5', kanji: 'あなた', kana: 'あなた', romaji: 'anata', meaning: 'Bạn / Anh / Chị' },
+  {
+    id: 'p6',
+    kanji: '～さん',
+    kana: '～さん',
+    romaji: '~san',
+    meaning: 'Anh / Chị / Ông / Bà (thêm sau tên người khác để lịch sự)',
+    isTrap: true,
+    note: 'Không tự gắn ～さん vào tên của chính mình.',
+  },
+  {
+    id: 'p7',
+    kanji: '先生',
+    kana: 'せんせい',
+    romaji: 'sensei',
+    meaning: 'Giáo viên / Thầy, cô',
+    isTrap: true,
+    note: 'Dùng gọi/giới thiệu người khác; tự giới thiệu nghề bản thân dùng きょうし.',
+  },
+  {
+    id: 'p8',
+    kanji: '～人',
+    kana: '～じん',
+    romaji: '~jin',
+    meaning: 'Người (hậu tố chỉ quốc tịch, ghép trực tiếp sau tên nước)',
+    isTrap: true,
+    note: 'Không chèn trợ từ の giữa tên nước và じん.',
+  },
+];
+
+export const COUNTRIES: CountryItem[] = [
+  { id: 'c1', viName: 'Nhật Bản', countryJp: '日本', countryKana: 'にほん', countryRomaji: 'nihon', nationalityJp: '日本人', nationalityKana: 'にほんじん', nationalityRomaji: 'nihonjin' },
+  { id: 'c2', viName: 'Việt Nam', countryJp: 'ベトナム', countryKana: 'ベトナム', countryRomaji: 'betonamu', nationalityJp: 'ベトナム人', nationalityKana: 'ベトナムじん', nationalityRomaji: 'betonamujin' },
+  { id: 'c3', viName: 'Thái Lan', countryJp: 'タイ', countryKana: 'タイ', countryRomaji: 'tai', nationalityJp: 'タイ人', nationalityKana: 'タイじん', nationalityRomaji: 'taijin' },
+  { id: 'c4', viName: 'Hàn Quốc', countryJp: '韓国', countryKana: 'かんこく', countryRomaji: 'kankoku', nationalityJp: '韓国人', nationalityKana: 'かんこくじん', nationalityRomaji: 'kankokujin' },
+  { id: 'c5', viName: 'Trung Quốc', countryJp: '中国', countryKana: 'ちゅうごく', countryRomaji: 'chuugoku', nationalityJp: '中国人', nationalityKana: 'ちゅうごくじん', nationalityRomaji: 'chuugokujin' },
+  { id: 'c6', viName: 'Mỹ', countryJp: 'アメリカ', countryKana: 'アメリカ', countryRomaji: 'amerika', nationalityJp: 'アメリカ人', nationalityKana: 'アメリカじん', nationalityRomaji: 'amerikajin' },
+  { id: 'c7', viName: 'Đức', countryJp: 'ドイツ', countryKana: 'ドイツ', countryRomaji: 'doitsu', nationalityJp: 'ドイツ人', nationalityKana: 'ドイツじん', nationalityRomaji: 'doitsujin' },
+  { id: 'c8', viName: 'Úc', countryJp: 'オーストラリア', countryKana: 'オーストラリア', countryRomaji: 'oosutoraria', nationalityJp: 'オーストラリア人', nationalityKana: 'オーストラリアじん', nationalityRomaji: 'oosutorariajin' },
+  { id: 'c9', viName: 'Ý', countryJp: 'イタリア', countryKana: 'イタリア', countryRomaji: 'itaria', nationalityJp: 'イタリア人', nationalityKana: 'イタリアじん', nationalityRomaji: 'itariajin' },
+  { id: 'c10', viName: 'Ấn Độ', countryJp: 'インド', countryKana: 'インド', countryRomaji: 'indo', nationalityJp: 'インド人', nationalityKana: 'インドじん', nationalityRomaji: 'indojin' },
+  { id: 'c11', viName: 'Indonesia', countryJp: 'インドネシア', countryKana: 'インドネシア', countryRomaji: 'indoneshia', nationalityJp: 'インドネシア人', nationalityKana: 'インドネシアじん', nationalityRomaji: 'indoneshiajin' },
+  { id: 'c12', viName: 'Brazil', countryJp: 'ブラジル', countryKana: 'ブラジル', countryRomaji: 'burajiru', nationalityJp: 'ブラジル人', nationalityKana: 'ブラジルじん', nationalityRomaji: 'burajirujin' },
+  { id: 'c13', viName: 'Canada', countryJp: 'カナダ', countryKana: 'カナダ', countryRomaji: 'kanada', nationalityJp: 'カナダ人', nationalityKana: 'カナダじん', nationalityRomaji: 'kanadajin' },
+  { id: 'c14', viName: 'Anh', countryJp: 'イギリス', countryKana: 'イギリス', countryRomaji: 'igirisu', nationalityJp: 'イギリス人', nationalityKana: 'イギリスじん', nationalityRomaji: 'igirisujin' },
+  { id: 'c15', viName: 'Pháp', countryJp: 'フランス', countryKana: 'フランス', countryRomaji: 'furansu', nationalityJp: 'フランス人', nationalityKana: 'フランスじん', nationalityRomaji: 'furansujin' },
+  { id: 'c16', viName: 'Nga', countryJp: 'ロシア', countryKana: 'ロシア', countryRomaji: 'roshia', nationalityJp: 'ロシア人', nationalityKana: 'ロシアじん', nationalityRomaji: 'roshiajin' },
+  { id: 'c17', viName: 'Myanmar', countryJp: 'ミャンマー', countryKana: 'ミャンマー', countryRomaji: 'myanmaa', nationalityJp: 'ミャンマー人', nationalityKana: 'ミャンマーじん', nationalityRomaji: 'myanmaajin' },
+  { id: 'c18', viName: 'Mông Cổ', countryJp: 'モンゴル', countryKana: 'モンゴル', countryRomaji: 'mongoru', nationalityJp: 'モンゴル人', nationalityKana: 'モンゴルじん', nationalityRomaji: 'mongorujin' },
+];
+
+export const LANGUAGE_EXCEPTIONS: VocabItem[] = [
+  { id: 'l1', kanji: '日本語', kana: 'にほんご', romaji: 'nihongo', meaning: 'Tiếng Nhật' },
+  { id: 'l2', kanji: 'ベトナム語', kana: 'ベトナムご', romaji: 'betonamugo', meaning: 'Tiếng Việt' },
+  {
+    id: 'l3',
+    kanji: '英語',
+    kana: 'えいご',
+    romaji: 'eigo',
+    meaning: 'Tiếng Anh',
+    isTrap: true,
+    note: 'Không ghép từ イギリス; dùng chữ Hán đại diện 英 (Ei).',
+  },
+  {
+    id: 'l4',
+    kanji: 'ポルトガル語',
+    kana: 'ポルトガルご',
+    romaji: 'porutogarugo',
+    meaning: 'Tiếng Bồ Đào Nha (nói ở Brazil)',
+    isTrap: true,
+    note: 'Ghép với quốc gia khai sinh ngôn ngữ, không dùng ブラジル語.',
+  },
+  {
+    id: 'l5',
+    kanji: 'スペイン語',
+    kana: 'スペインご',
+    romaji: 'supeingo',
+    meaning: 'Tiếng Tây Ban Nha (nói ở Mexico)',
+    isTrap: true,
+    note: 'Không ghép trực tiếp từ tên quốc gia nói ngôn ngữ đó.',
+  },
+];
+
+export const OCCUPATIONS: VocabItem[] = [
+  { id: 'o1', kanji: '学生', kana: 'がくせい', romaji: 'gakusei', meaning: 'Học sinh / Sinh viên nói chung' },
+  { id: 'o2', kanji: '大学生', kana: 'だいがくせい', romaji: 'daigakusei', meaning: 'Sinh viên đại học' },
+  {
+    id: 'o3',
+    kanji: '先生',
+    kana: 'せんせい',
+    romaji: 'sensei',
+    meaning: 'Giáo viên / Giảng viên (gọi người khác)',
+    isTrap: true,
+  },
+  { id: 'o4', kanji: '会社員', kana: 'かいしゃいん', romaji: 'kaishain', meaning: 'Nhân viên công ty (nói chung)' },
+  { id: 'o5', kanji: '銀行員', kana: 'ぎんこういん', romaji: 'ginkouin', meaning: 'Nhân viên ngân hàng' },
+  { id: 'o6', kanji: '医者', kana: 'いしゃ', romaji: 'isha', meaning: 'Bác sĩ' },
+  { id: 'o7', kanji: '研究者', kana: 'けんきゅうしゃ', romaji: 'kenkyuusha', meaning: 'Nhà nghiên cứu' },
+  {
+    id: 'o8',
+    kanji: '教師',
+    kana: 'きょうし',
+    romaji: 'kyoushi',
+    meaning: 'Giáo viên (tự giới thiệu nghề bản thân)',
+    isTrap: true,
+  },
+];
+
+export const SCHOOLS: VocabItem[] = [
+  { id: 's1', kanji: '学校', kana: 'がっこう', romaji: 'gakkou', meaning: 'Trường học' },
+  { id: 's2', kanji: '大学', kana: 'だいがく', romaji: 'daigaku', meaning: 'Trường đại học' },
+  { id: 's3', kanji: '高校', kana: 'こうこう', romaji: 'koukou', meaning: 'Trường cấp 3 (THPT)' },
+  { id: 's4', kanji: '日本語学校', kana: 'にほんごがっこう', romaji: 'nihongo gakkou', meaning: 'Trường tiếng Nhật' },
+];
+
+export const CONFUSING_PAIRS: ConfusingPair[] = [
+  {
+    id: 'cp1',
+    title: 'きょうし (教師) vs せんせい (先生)',
+    leftLabel: 'きょうし (教師)',
+    leftUsage: 'Dùng để tự giới thiệu nghề nghiệp của chính mình (trung lập, khiêm tốn).',
+    leftExample: 'わたしは きょうしです。(Tôi là giáo viên.)',
+    rightLabel: 'せんせい (先生)',
+    rightUsage: 'Dùng làm danh xưng tôn kính gọi thầy/cô/bác sĩ hoặc giới thiệu nghề của người khác.',
+    rightExample: 'たなかさんは せんせいです。(Thầy Tanaka là giáo viên.)',
+    warning: 'Không dùng せんせい để tự xưng nghề nghiệp của bản thân; chỉ dùng trong câu phủ định đính chính nếu cần (vd: わたしは せんせいじゃありません).',
+  },
+  {
+    id: 'cp2',
+    title: 'かいしゃいん (会社員) vs [Công ty] の しゃいん (社員)',
+    leftLabel: 'かいしゃいん (会社員)',
+    leftUsage: 'Nói chung nghề nghiệp là nhân viên công ty, không nêu tên công ty.',
+    leftExample: 'わたしは かいしゃいんです。',
+    rightLabel: '[Tên công ty] の しゃいん',
+    rightUsage: 'Khi đứng sau tên công ty cụ thể, bắt buộc dùng trợ từ の + しゃいん.',
+    rightExample: 'キムさんは トヨタの しゃいんです。(PDF: Kimさんは Toyota の しゃいんです)',
+    warning: 'Không viết [Tên công ty] の かいしゃいん.',
+  },
+];
+
+export const GRAMMAR_PATTERNS: GrammarPattern[] = [
+  {
+    id: 'g1',
+    title: '① Mẫu câu Khẳng định (です)',
+    structure: 'N1 は N2 です。',
+    exampleJp: 'わたしは にほんじんです。',
+    exampleRomaji: 'Watashi wa nihonjin desu.',
+    exampleVi: 'Tôi là người Nhật Bản.',
+    notes: [
+      'Trợ từ chủ đề は khi đóng vai trò trợ từ đọc là "wa" (không đọc là "ha").',
+      'です đặt ở cuối câu thể hiện thái độ lịch sự.',
+    ],
+  },
+  {
+    id: 'g2',
+    title: '② Mẫu câu Phủ định (じゃありません)',
+    structure: 'N1 は N2 じゃありません。',
+    exampleJp: 'わたしは がくせいじゃありません。',
+    exampleRomaji: 'Watashi wa gakusei ja arimasen.',
+    exampleVi: 'Tôi không phải là học sinh.',
+    notes: [
+      'じゃありません dùng phổ biến trong giao tiếp hàng ngày.',
+      'Trong văn viết hoặc ngữ cảnh trang trọng có thể dùng ではありません.',
+    ],
+  },
+  {
+    id: 'g3',
+    title: '③ Mẫu câu Nghi vấn (ですか)',
+    structure: 'N1 は N2 ですか。',
+    exampleJp: 'あなたは にほんじんですか。',
+    exampleRomaji: 'Anata wa nihonjin desu ka?',
+    exampleVi: 'Bạn có phải là người Nhật không?',
+    notes: [
+      'Trợ từ か ở cuối câu đóng vai trò dấu hỏi chấm và lên giọng khi nói.',
+      'Trả lời: はい、[N2] です。 / いいえ、[N2] じゃありません。[N3] です。',
+    ],
+  },
+  {
+    id: 'g4',
+    title: '④ Mẫu câu Sở thuộc / Bổ nghĩa (の)',
+    structure: 'N1 の N2',
+    exampleJp: 'わたしは FPTだいがくの がくせいです。',
+    exampleRomaji: 'Watashi wa FPT daigaku no gakusei desu.',
+    exampleVi: 'Tôi là sinh viên trường Đại học FPT.',
+    notes: [
+      'N1 giải thích tổ chức/cơ quan quản lý của N2.',
+      'Khi dịch sang tiếng Việt, danh từ chính N2 dịch trước N1 (ngược thứ tự tiếng Nhật).',
+    ],
+  },
+  {
+    id: 'g5',
+    title: '⑤ Mẫu câu Đồng nhất (も)',
+    structure: 'N1 も N2 です。',
+    exampleJp: 'やまださんも にほんじんです。',
+    exampleRomaji: 'Yamada-san mo nihonjin desu.',
+    exampleVi: 'Anh Yamada cũng là người Nhật.',
+    notes: [
+      'Trợ từ も (cũng) thay thế hoàn toàn vị trí trợ từ は, không viết はも cạnh nhau.',
+    ],
+    isTrap: true,
+  },
+];
+
+export const POLITE_COMMUNICATION: VocabItem[] = [
+  {
+    id: 'pc1',
+    kanji: 'お名前は？ / おなまえは なんですか。',
+    kana: 'あのう、すみません、おなまえは？',
+    romaji: 'Anou, sumimasen, o-namae wa?',
+    meaning: 'Xin lỗi, cho tôi hỏi tên bạn là gì ạ?',
+    isTrap: true,
+    note: 'Tiền tố お thể hiện sự kính trọng đối với tên đối phương.',
+  },
+  {
+    id: 'pc2',
+    kanji: 'お国は どちらですか。',
+    kana: 'おくには どちらですか。',
+    romaji: 'O-kuni wa dochira desu ka?',
+    meaning: 'Quê hương / Quốc gia của bạn ở đâu ạ?',
+    isTrap: true,
+    note: 'Dùng nghi vấn từ lịch sự どちら thay cho どこ + thêm tiền tố お trước くに.',
+  },
+  {
+    id: 'pc3',
+    kanji: 'お仕事は？',
+    kana: 'あのう、[Tên]さん、おしごとは？',
+    romaji: 'Anou, [Ten]-san, o-shigoto wa?',
+    meaning: 'Xin lỗi, anh/chị [Tên] làm nghề gì vậy ạ?',
+    isTrap: true,
+    note: 'Thêm tiền tố お vào しごと để câu hỏi lịch sự hơn.',
+  },
+  {
+    id: 'pc4',
+    kanji: 'そうですか。',
+    kana: 'そうですか。',
+    romaji: 'Sou desu ka.',
+    meaning: 'Vậy à / Thế à (phản hồi lịch sự khi nghe thông tin).',
+  },
+  {
+    id: 'pc5',
+    kanji: 'ありがとうございます。→ どういたしまして。',
+    kana: 'ありがとうございます。→ どういたしまして。',
+    romaji: 'Arigatou gozaimasu. → Dou itashimashite.',
+    meaning: 'Cảm ơn nhiều. → Không có gì đâu ạ.',
+    isTrap: true,
+    note: 'Bổ sung từ Câu 10 Workbook (không có trong Cheat Sheet gốc của PDF).',
+  },
+  {
+    id: 'pc6',
+    kanji: 'おはようございます。 / さようなら。',
+    kana: 'おはようございます。 / さようなら。',
+    romaji: 'Ohayou gozaimasu. / Sayounara.',
+    meaning: 'Chào buổi sáng. / Tạm biệt.',
+    note: 'Các câu chào cơ bản xuất hiện trong các phương án nhiễu của Câu 6 Workbook.',
+  },
+];
