@@ -1,7 +1,7 @@
 # JPD113 · Bài 1 — Cheat Sheet Tương Tác, Quiz 20 Câu & Live Scoreboard
 
 Ứng dụng web phục vụ buổi sinh hoạt ôn tập **JPD113 (Ngữ pháp sơ cấp – Bài 1)** trong **15 phút** theo mô hình 2 Phase tự vận hành:
-- **Phase 1 (7 phút):** Tự ôn toàn bộ kiến thức Part 1, Part 2, Part 3 kèm bộ lọc bẫy biến âm, bài tập điền trợ từ, ghép cặp giao tiếp, "Soi Bug" *Jikoshoukai* và xưởng tự ghép câu tự động xử lý ngoại lệ.
+- **Phase 1 (7 phút):** Tự ôn toàn bộ kiến thức Part 1, Part 2, Part 3 kèm bộ lọc bẫy biến âm, bài tập điền trợ từ, ghép cặp giao tiếp, "Kiếm lỗi sai" *Jikoshoukai* và xưởng tự ghép câu tự động xử lý ngoại lệ.
 - **Phase 2 (8 phút):** Làm đủ **20 câu Workbook** trong PDF, chấm điểm + tính thời gian thực phía máy chủ (Postgres RPC `SECURITY DEFINER`), và hiển thị **Live Scoreboard** sắp xếp theo `Điểm cao nhất → Thời gian nhanh nhất` để trao thưởng trực tiếp trên lớp.
 
 ---

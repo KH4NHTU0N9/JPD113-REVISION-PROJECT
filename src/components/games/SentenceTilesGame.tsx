@@ -251,7 +251,7 @@ export function SentenceTilesGame({
               onClick={onNextStage}
               className="flex items-center gap-1.5 rounded-xl bg-emerald-600 px-5 py-2.5 text-xs font-extrabold text-white hover:bg-emerald-700"
             >
-              <span>{allSolved ? 'Hoàn thành! Sang Chặng 4: Soi Bug' : 'Sang Chặng 4: Soi Bug'}</span>
+              <span>{allSolved ? 'Hoàn thành! Sang Chặng 4: Kiếm lỗi sai' : 'Sang Chặng 4: Kiếm lỗi sai'}</span>
               <ArrowRight className="h-3.5 w-3.5" />
             </button>
           )}

@@ -48,7 +48,7 @@ const GAME_STAGES: {
   { id: 'tinder', shortLabel: '1. Chuẩn / Bẫy', hintTab: 'traps', icon: ShieldAlert },
   { id: 'match', shortLabel: '2. Ghép Biến Mất', hintTab: 'part2', icon: Zap },
   { id: 'tiles', shortLabel: '3. Xếp Mảnh Câu', hintTab: 'part1', icon: Puzzle },
-  { id: 'bug', shortLabel: '4. Soi Bug', hintTab: 'part3', icon: Bug },
+  { id: 'bug', shortLabel: '4. Kiếm lỗi sai', hintTab: 'part3', icon: Bug },
 ];
 
 export function Phase1Container({

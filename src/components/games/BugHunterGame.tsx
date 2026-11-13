@@ -39,7 +39,7 @@ export function BugHunterGame({
         caseId,
         message: 'Cụm này chuẩn ngữ pháp rồi — hãy soi kỹ xưng hô, quốc tịch, tuổi & ngày!',
       });
-      onRecordWeakNote('Soi Bug: Nhầm cụm đúng ngữ pháp thành lỗi sai.');
+      onRecordWeakNote('Kiếm lỗi sai: Nhầm cụm đúng ngữ pháp thành lỗi sai.');
       return;
     }
 
@@ -59,7 +59,7 @@ export function BugHunterGame({
       <div className="flex flex-wrap items-center justify-between gap-2 rounded-xl border border-stone-200 bg-white px-4 py-2.5 shadow-2xs">
         <div className="flex items-center gap-2">
           <Bug className="h-4 w-4 text-red-700" />
-          <span className="text-sm font-extrabold text-stone-900">Soi lỗi sai</span>
+          <span className="text-sm font-extrabold text-stone-900">Kiếm lỗi sai</span>
         </div>
         <span
           className={`rounded-full px-2.5 py-0.5 text-xs font-extrabold ${
