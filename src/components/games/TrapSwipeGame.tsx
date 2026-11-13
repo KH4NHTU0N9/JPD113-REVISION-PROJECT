@@ -105,44 +105,39 @@ export function TrapSwipeGame({
   if (finished) {
     const missedCards = TRAP_SWIPE_CARDS.filter((c) => missedIds.includes(c.id));
     return (
-      <section className="rounded-2xl border border-stone-200 bg-white p-6 text-center shadow-xs">
-        <div className="mx-auto flex h-12 w-12 items-center justify-center rounded-full bg-emerald-100 text-emerald-700">
-          <CheckCircle2 className="h-6 w-6" />
+      <section className="rounded-xl border border-stone-200 bg-white p-5 text-center shadow-2xs">
+        <div className="mx-auto flex h-11 w-11 items-center justify-center rounded-full bg-emerald-100 text-emerald-700">
+          <CheckCircle2 className="h-5 w-5" />
         </div>
-        <h3 className="mt-3 text-lg font-extrabold text-stone-900">
-          Xong Chặng 1 · Đúng {correctCount}/{deck.length} thẻ
+        <h3 className="mt-2.5 text-base font-extrabold text-stone-900">
+          Đúng {correctCount}/{deck.length} thẻ
         </h3>
-        <p className="mt-1 text-xs text-stone-500">
-          {missedCards.length === 0
-            ? 'Không dính bẫy nào — rất chắc kiến thức!'
-            : `Còn ${missedCards.length} câu bẫy bạn nên xem lại trước khi vào Quiz.`}
-        </p>
 
-        <div className="mt-5 flex flex-wrap items-center justify-center gap-2.5">
+        <div className="mt-4 flex flex-wrap items-center justify-center gap-2">
           {missedCards.length > 0 && (
             <button
               type="button"
               onClick={() => startDeck(missedCards)}
-              className="flex items-center gap-1.5 rounded-xl border border-amber-300 bg-amber-50 px-4 py-2.5 text-xs font-extrabold text-amber-900 hover:bg-amber-100"
+              className="flex items-center gap-1.5 rounded-xl border border-amber-300 bg-amber-50 px-3.5 py-2 text-xs font-extrabold text-amber-900 hover:bg-amber-100"
             >
               <RotateCcw className="h-3.5 w-3.5" />
-              Luyện lại {missedCards.length} câu vừa nhầm
+              Làm lại {missedCards.length} câu nhầm
             </button>
           )}
           <button
             type="button"
             onClick={() => startDeck(TRAP_SWIPE_CARDS)}
-            className="flex items-center gap-1.5 rounded-xl border border-stone-200 bg-stone-50 px-4 py-2.5 text-xs font-bold text-stone-700 hover:bg-stone-100"
+            className="flex items-center gap-1.5 rounded-xl border border-stone-200 bg-stone-50 px-3.5 py-2 text-xs font-bold text-stone-700 hover:bg-stone-100"
           >
             <RotateCcw className="h-3.5 w-3.5" />
-            Làm lại 12 thẻ
+            Làm lại hết
           </button>
           <button
             type="button"
             onClick={onNextStage}
-            className="flex items-center gap-1.5 rounded-xl bg-red-700 px-5 py-2.5 text-xs font-extrabold text-white shadow-xs hover:bg-red-800"
+            className="flex items-center gap-1.5 rounded-xl bg-red-700 px-4 py-2 text-xs font-extrabold text-white hover:bg-red-800"
           >
-            <span>Sang Chặng 2: Ghép Biến Mất</span>
+            <span>Chặng 2: Ghép Biến Mất</span>
             <ArrowRight className="h-4 w-4" />
           </button>
         </div>
@@ -155,15 +150,15 @@ export function TrapSwipeGame({
   const progressPct = Math.round(((index + (hasJudged ? 1 : 0)) / deck.length) * 100);
 
   return (
-    <section className="rounded-2xl border border-stone-200 bg-white p-4 shadow-xs sm:p-6">
+    <section className="rounded-xl border border-stone-200 bg-white p-4 shadow-2xs sm:p-5">
       <div className="flex flex-wrap items-center justify-between gap-2">
         <div className="flex items-center gap-2">
-          <span className="rounded-full bg-stone-100 px-2.5 py-1 text-xs font-extrabold text-stone-700">
+          <span className="text-xs font-extrabold text-stone-700">
             Thẻ {index + 1} / {deck.length}
           </span>
           {isCompleted && (
-            <span className="rounded-full bg-emerald-100 px-2.5 py-1 text-[11px] font-bold text-emerald-800">
-              Đã hoàn thành
+            <span className="rounded-full bg-emerald-100 px-2 py-0.5 text-[11px] font-bold text-emerald-800">
+              Đã xong
             </span>
           )}
         </div>
@@ -177,7 +172,7 @@ export function TrapSwipeGame({
         </button>
       </div>
 
-      <div className="mt-3 h-2 overflow-hidden rounded-full bg-stone-100">
+      <div className="mt-2.5 h-1.5 overflow-hidden rounded-full bg-stone-100">
         <div
           className="h-full rounded-full bg-red-700 transition-all duration-300"
           style={{ width: `${progressPct}%` }}
@@ -185,25 +180,25 @@ export function TrapSwipeGame({
       </div>
 
       <div
-        className={`mt-5 rounded-2xl border-2 p-5 text-center transition sm:p-7 ${
+        className={`mt-4 rounded-xl border p-5 text-center transition ${
           !hasJudged
-            ? 'border-stone-200 bg-stone-50/70'
+            ? 'border-stone-200 bg-stone-50/50'
             : wasCorrect
-              ? 'border-emerald-400 bg-emerald-50/70'
-              : 'border-red-400 bg-red-50/70'
+              ? 'border-emerald-300 bg-emerald-50/60'
+              : 'border-red-300 bg-red-50/60'
         }`}
       >
-        <span className="inline-block rounded-full bg-stone-900 px-3 py-0.5 text-[11px] font-extrabold text-white">
+        <span className="text-[11px] font-extrabold uppercase tracking-wider text-stone-500">
           {currentCard.category}
         </span>
 
         {currentCard.contextVi && (
-          <p className="mt-2.5 text-xs font-semibold text-stone-500">
+          <p className="mt-1.5 text-xs font-semibold text-stone-500">
             {currentCard.contextVi}
           </p>
         )}
 
-        <p className="font-jp mt-3 text-xl font-extrabold leading-relaxed text-stone-900 sm:text-2xl">
+        <p className="font-jp mt-2.5 text-xl font-extrabold leading-relaxed text-stone-900 sm:text-2xl">
           {currentCard.statementJp}
         </p>
 
@@ -212,23 +207,23 @@ export function TrapSwipeGame({
         )}
 
         {hasJudged && (
-          <div className="mt-4 rounded-xl border border-white/80 bg-white/95 p-3.5 text-left text-xs shadow-xs">
+          <div className="mt-4 rounded-xl border border-stone-200/70 bg-white p-3 text-left text-xs">
             <div className="flex items-center gap-1.5 font-extrabold">
               {wasCorrect ? (
                 <>
                   <CheckCircle2 className="h-4 w-4 text-emerald-600" />
-                  <span className="text-emerald-800">Chuẩn xác!</span>
+                  <span className="text-emerald-800">Chuẩn xác</span>
                 </>
               ) : (
                 <>
                   <XCircle className="h-4 w-4 text-red-600" />
-                  <span className="text-red-800">Dính bẫy rồi!</span>
+                  <span className="text-red-800">Dính bẫy rồi</span>
                 </>
               )}
             </div>
             {!currentCard.isCorrectStatement && (
               <p className="font-jp mt-1.5 font-bold text-stone-900">
-                Cách sửa chuẩn:{' '}
+                Sửa chuẩn:{' '}
                 <span className="text-emerald-700">{currentCard.fixText}</span>
               </p>
             )}
@@ -238,43 +233,33 @@ export function TrapSwipeGame({
       </div>
 
       {!hasJudged ? (
-        <div className="mt-4 grid grid-cols-2 gap-3">
+        <div className="mt-3.5 grid grid-cols-2 gap-2.5">
           <button
             type="button"
             onClick={() => handleJudge(false)}
-            className="flex flex-col items-center justify-center gap-1 rounded-2xl border-2 border-red-200 bg-red-50 px-4 py-3.5 text-red-800 transition hover:border-red-400 hover:bg-red-100 active:scale-[0.98]"
+            className="flex items-center justify-center gap-1.5 rounded-xl border border-red-200 bg-red-50 px-4 py-3 text-sm font-extrabold text-red-800 transition hover:border-red-400 hover:bg-red-100 active:scale-[0.98]"
           >
-            <div className="flex items-center gap-1.5 text-sm font-extrabold">
-              <ShieldAlert className="h-4 w-4" />
-              <span>BẪY / SAI</span>
-            </div>
-            <span className="hidden text-[11px] font-medium text-red-600 sm:inline">
-              Phím 1 hoặc ←
-            </span>
+            <ShieldAlert className="h-4 w-4" />
+            <span>BẪY / SAI</span>
           </button>
 
           <button
             type="button"
             onClick={() => handleJudge(true)}
-            className="flex flex-col items-center justify-center gap-1 rounded-2xl border-2 border-emerald-200 bg-emerald-50 px-4 py-3.5 text-emerald-800 transition hover:border-emerald-400 hover:bg-emerald-100 active:scale-[0.98]"
+            className="flex items-center justify-center gap-1.5 rounded-xl border border-emerald-200 bg-emerald-50 px-4 py-3 text-sm font-extrabold text-emerald-800 transition hover:border-emerald-400 hover:bg-emerald-100 active:scale-[0.98]"
           >
-            <div className="flex items-center gap-1.5 text-sm font-extrabold">
-              <CheckCircle2 className="h-4 w-4" />
-              <span>CHUẨN</span>
-            </div>
-            <span className="hidden text-[11px] font-medium text-emerald-700 sm:inline">
-              Phím 2 hoặc →
-            </span>
+            <CheckCircle2 className="h-4 w-4" />
+            <span>CHUẨN</span>
           </button>
         </div>
       ) : (
-        <div className="mt-4 flex justify-end">
+        <div className="mt-3.5 flex justify-end">
           <button
             type="button"
             onClick={handleNext}
-            className="flex w-full items-center justify-center gap-2 rounded-2xl bg-stone-900 px-5 py-3.5 text-sm font-extrabold text-white transition hover:bg-stone-800 sm:w-auto"
+            className="flex w-full items-center justify-center gap-2 rounded-xl bg-stone-900 px-5 py-3 text-sm font-extrabold text-white transition hover:bg-stone-800 sm:w-auto"
           >
-            <span>{index + 1 >= deck.length ? 'Xem kết quả Chặng 1' : 'Thẻ tiếp theo'}</span>
+            <span>{index + 1 >= deck.length ? 'Xem kết quả' : 'Tiếp theo'}</span>
             <ArrowRight className="h-4 w-4" />
           </button>
         </div>
