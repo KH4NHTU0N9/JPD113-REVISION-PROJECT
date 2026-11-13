@@ -216,12 +216,12 @@ export const GRAMMAR_PATTERNS: GrammarPattern[] = [
 export const POLITE_COMMUNICATION: VocabItem[] = [
   {
     id: 'pc1',
-    kanji: 'お名前は？ / おなまえは なんですか。',
+    kanji: 'あのう、すみません、お名前は？',
     kana: 'あのう、すみません、おなまえは？',
     romaji: 'Anou, sumimasen, o-namae wa?',
     meaning: 'Xin lỗi, cho tôi hỏi tên bạn là gì ạ?',
     isTrap: true,
-    note: 'Tiền tố お thể hiện sự kính trọng đối với tên đối phương.',
+    note: 'Cũng có thể hỏi đầy đủ: おなまえは なんですか。 Tiền tố お thể hiện sự kính trọng đối với tên đối phương.',
   },
   {
     id: 'pc2',
@@ -234,7 +234,7 @@ export const POLITE_COMMUNICATION: VocabItem[] = [
   },
   {
     id: 'pc3',
-    kanji: 'お仕事は？',
+    kanji: 'あのう、[Tên]さん、お仕事は？',
     kana: 'あのう、[Tên]さん、おしごとは？',
     romaji: 'Anou, [Ten]-san, o-shigoto wa?',
     meaning: 'Xin lỗi, anh/chị [Tên] làm nghề gì vậy ạ?',
